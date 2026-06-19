@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "DentSalud – Sistema de Gestión Odontológica"
+version = "1.0.0"
+id = "artifacts/dentsalud"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 26064
+
+[services.development]
+run = "pnpm --filter @workspace/dentsalud run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dentsalud", "run", "build" ]
+publicDir = "artifacts/dentsalud/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26064"
+BASE_PATH = "/"

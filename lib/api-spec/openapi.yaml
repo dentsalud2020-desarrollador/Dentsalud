@@ -1,22 +1,37 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: DentSalud – Sistema de Gestión Odontológica API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: pacientes
+    description: Patient management
+  - name: historias
+    description: Clinical history
+  - name: odontodiagrama
+    description: Dental odontogram
+  - name: tratamientos
+    description: Treatment plans
+  - name: sesiones
+    description: Treatment sessions
+  - name: pagos
+    description: Payments
+  - name: dashboard
+    description: Dashboard stats
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +39,1244 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: JWT token + user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Usuario"
+
+  /pacientes:
+    get:
+      operationId: listPacientes
+      tags: [pacientes]
+      summary: List patients with search and pagination
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: busqueda
+          in: query
+          schema: { type: string }
+        - name: pagina
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limite
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paginated patients list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PacienteListResponse"
+    post:
+      operationId: createPaciente
+      tags: [pacientes]
+      summary: Create a new patient
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PacienteInput"
+      responses:
+        "201":
+          description: Created patient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Paciente"
+
+  /pacientes/{id}:
+    get:
+      operationId: getPaciente
+      tags: [pacientes]
+      summary: Get patient by ID with full clinical history
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Patient with full history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PacienteDetalle"
+        "404":
+          description: Not found
+    patch:
+      operationId: updatePaciente
+      tags: [pacientes]
+      summary: Update patient info
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PacienteUpdate"
+      responses:
+        "200":
+          description: Updated patient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Paciente"
+    delete:
+      operationId: deletePaciente
+      tags: [pacientes]
+      summary: Soft delete patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /pacientes/{id}/antecedentes:
+    get:
+      operationId: getAntecedentes
+      tags: [historias]
+      summary: Get medical background
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Medical background
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Antecedentes"
+    put:
+      operationId: upsertAntecedentes
+      tags: [historias]
+      summary: Create or update medical background
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AntecedentesInput"
+      responses:
+        "200":
+          description: Upserted antecedentes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Antecedentes"
+
+  /pacientes/{id}/examen-clinico:
+    get:
+      operationId: getExamenClinico
+      tags: [historias]
+      summary: Get clinical exam
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Clinical exam
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamenClinico"
+    put:
+      operationId: upsertExamenClinico
+      tags: [historias]
+      summary: Create or update clinical exam
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExamenClinicoInput"
+      responses:
+        "200":
+          description: Upserted examen clinico
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamenClinico"
+
+  /pacientes/{id}/odontodiagrama:
+    get:
+      operationId: getOdontodiagrama
+      tags: [odontodiagrama]
+      summary: Get odontogram for patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of dental piece states
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PiezaDental"
+    put:
+      operationId: updateOdontodiagrama
+      tags: [odontodiagrama]
+      summary: Save odontogram (bulk upsert)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OdontodiagramaInput"
+      responses:
+        "200":
+          description: Updated odontogram
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PiezaDental"
+
+  /pacientes/{id}/diagnosticos:
+    get:
+      operationId: getDiagnosticos
+      tags: [historias]
+      summary: Get CIE-10 diagnoses for patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Diagnoses list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Diagnostico"
+    post:
+      operationId: createDiagnostico
+      tags: [historias]
+      summary: Add CIE-10 diagnosis
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiagnosticoInput"
+      responses:
+        "201":
+          description: Created diagnosis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Diagnostico"
+
+  /diagnosticos/{id}:
+    delete:
+      operationId: deleteDiagnostico
+      tags: [historias]
+      summary: Delete a diagnosis
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /pacientes/{id}/plan-tratamientos:
+    get:
+      operationId: getPlanTratamientos
+      tags: [tratamientos]
+      summary: Get treatment plan for patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Treatment plan items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlanTratamiento"
+    post:
+      operationId: createPlanTratamiento
+      tags: [tratamientos]
+      summary: Add treatment to plan
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanTratamientoInput"
+      responses:
+        "201":
+          description: Created plan item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanTratamiento"
+
+  /plan-tratamientos/{id}:
+    patch:
+      operationId: updatePlanTratamiento
+      tags: [tratamientos]
+      summary: Update treatment plan item
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanTratamientoUpdate"
+      responses:
+        "200":
+          description: Updated plan item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanTratamiento"
+    delete:
+      operationId: deletePlanTratamiento
+      tags: [tratamientos]
+      summary: Delete treatment plan item
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /tipos-tratamiento:
+    get:
+      operationId: listTiposTratamiento
+      tags: [tratamientos]
+      summary: List all treatment types
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Treatment types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TipoTratamiento"
+
+  /pacientes/{id}/sesiones:
+    get:
+      operationId: getSesiones
+      tags: [sesiones]
+      summary: Get treatment sessions for patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Sessions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sesion"
+    post:
+      operationId: createSesion
+      tags: [sesiones]
+      summary: Register a treatment session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SesionInput"
+      responses:
+        "201":
+          description: Created session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sesion"
+
+  /sesiones/{id}:
+    patch:
+      operationId: updateSesion
+      tags: [sesiones]
+      summary: Update a session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SesionUpdate"
+      responses:
+        "200":
+          description: Updated session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sesion"
+    delete:
+      operationId: deleteSesion
+      tags: [sesiones]
+      summary: Delete a session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /pacientes/{id}/pagos:
+    get:
+      operationId: getPagos
+      tags: [pagos]
+      summary: Get payment history for patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Payment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pago"
+    post:
+      operationId: createPago
+      tags: [pagos]
+      summary: Register a payment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PagoInput"
+      responses:
+        "201":
+          description: Created payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pago"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Dashboard summary statistics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/actividad-reciente:
+    get:
+      operationId: getActividadReciente
+      tags: [dashboard]
+      summary: Recent clinical activity feed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limite
+          in: query
+          schema: { type: integer, default: 10 }
+      responses:
+        "200":
+          description: Recent activity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActividadItem"
+
+  /piezas-dentales/catalogo:
+    get:
+      operationId: getCatalogoPiezas
+      tags: [odontodiagrama]
+      summary: Get dental piece catalog (FDI)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Full FDI catalog
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PiezaCatalogo"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, usuario]
+      properties:
+        token:
+          type: string
+        usuario:
+          $ref: "#/components/schemas/Usuario"
+
+    Usuario:
+      type: object
+      required: [id, nombreCompleto, email, rol]
+      properties:
+        id:
+          type: integer
+        nombreCompleto:
+          type: string
+        email:
+          type: string
+        rol:
+          type: string
+          enum: [administrador, odontologo]
+        especialidad:
+          type: ["string", "null"]
+        telefono:
+          type: ["string", "null"]
+        activo:
+          type: boolean
+
+    Paciente:
+      type: object
+      required: [id, numeroHc, fechaApertura, nombres, apellidos]
+      properties:
+        id:
+          type: integer
+        numeroHc:
+          type: string
+        fechaApertura:
+          type: string
+          format: date
+        nombres:
+          type: string
+        apellidos:
+          type: string
+        fechaNacimiento:
+          type: ["string", "null"]
+          format: date
+        telefono:
+          type: ["string", "null"]
+        dni:
+          type: ["string", "null"]
+        domicilio:
+          type: ["string", "null"]
+        correo:
+          type: ["string", "null"]
+        motivoConsulta:
+          type: ["string", "null"]
+        odontologoId:
+          type: ["integer", "null"]
+        activo:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    PacienteInput:
+      type: object
+      required: [nombres, apellidos]
+      properties:
+        nombres:
+          type: string
+        apellidos:
+          type: string
+        fechaNacimiento:
+          type: ["string", "null"]
+          format: date
+        telefono:
+          type: ["string", "null"]
+        dni:
+          type: ["string", "null"]
+        domicilio:
+          type: ["string", "null"]
+        correo:
+          type: ["string", "null"]
+        motivoConsulta:
+          type: ["string", "null"]
+        odontologoId:
+          type: ["integer", "null"]
+
+    PacienteUpdate:
+      type: object
+      properties:
+        nombres:
+          type: string
+        apellidos:
+          type: string
+        fechaNacimiento:
+          type: ["string", "null"]
+          format: date
+        telefono:
+          type: ["string", "null"]
+        dni:
+          type: ["string", "null"]
+        domicilio:
+          type: ["string", "null"]
+        correo:
+          type: ["string", "null"]
+        motivoConsulta:
+          type: ["string", "null"]
+        odontologoId:
+          type: ["integer", "null"]
+
+    PacienteListResponse:
+      type: object
+      required: [data, total, pagina, limite]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Paciente"
+        total:
+          type: integer
+        pagina:
+          type: integer
+        limite:
+          type: integer
+
+    PacienteDetalle:
+      type: object
+      required: [paciente]
+      properties:
+        paciente:
+          $ref: "#/components/schemas/Paciente"
+        antecedentes:
+          $ref: "#/components/schemas/Antecedentes"
+        examenClinico:
+          $ref: "#/components/schemas/ExamenClinico"
+        odontodiagrama:
+          type: array
+          items:
+            $ref: "#/components/schemas/PiezaDental"
+        diagnosticos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Diagnostico"
+        planTratamientos:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanTratamiento"
+        sesiones:
+          type: array
+          items:
+            $ref: "#/components/schemas/Sesion"
+        resumenPagos:
+          $ref: "#/components/schemas/ResumenPagos"
+
+    Antecedentes:
+      type: object
+      required: [id, pacienteId]
+      properties:
+        id:
+          type: integer
+        pacienteId:
+          type: integer
+        patologicos:
+          type: ["string", "null"]
+        esGestante:
+          type: boolean
+        edadGestacional:
+          type: ["integer", "null"]
+        medicacionActual:
+          type: ["string", "null"]
+        alergias:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+          format: date-time
+
+    AntecedentesInput:
+      type: object
+      properties:
+        patologicos:
+          type: ["string", "null"]
+        esGestante:
+          type: boolean
+        edadGestacional:
+          type: ["integer", "null"]
+        medicacionActual:
+          type: ["string", "null"]
+        alergias:
+          type: ["string", "null"]
+
+    ExamenClinico:
+      type: object
+      required: [id, pacienteId]
+      properties:
+        id:
+          type: integer
+        pacienteId:
+          type: integer
+        cuello:
+          type: ["string", "null"]
+        atm:
+          type: ["string", "null"]
+        mucosaYugal:
+          type: ["string", "null"]
+        paladar:
+          type: ["string", "null"]
+        lengua:
+          type: ["string", "null"]
+        pisoBoca:
+          type: ["string", "null"]
+        gingiva:
+          type: ["string", "null"]
+        analisisOclusion:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+          format: date-time
+
+    ExamenClinicoInput:
+      type: object
+      properties:
+        cuello:
+          type: ["string", "null"]
+        atm:
+          type: ["string", "null"]
+        mucosaYugal:
+          type: ["string", "null"]
+        paladar:
+          type: ["string", "null"]
+        lengua:
+          type: ["string", "null"]
+        pisoBoca:
+          type: ["string", "null"]
+        gingiva:
+          type: ["string", "null"]
+        analisisOclusion:
+          type: ["string", "null"]
+
+    PiezaCatalogo:
+      type: object
+      required: [numeroPieza, tipo, cuadrante, posicion, nombreAnatomico, arcada]
+      properties:
+        numeroPieza:
+          type: string
+        tipo:
+          type: string
+          enum: [adulto, deciduo]
+        cuadrante:
+          type: integer
+        posicion:
+          type: integer
+        nombreAnatomico:
+          type: string
+        arcada:
+          type: string
+          enum: [superior, inferior]
+
+    PiezaDental:
+      type: object
+      required: [id, pacienteId, numeroPieza, estado]
+      properties:
+        id:
+          type: integer
+        pacienteId:
+          type: integer
+        numeroPieza:
+          type: string
+        estado:
+          type: string
+          enum: [sano, caries, obturado, ausente, corona, implante, endodoncia, extraccion_indicada, fractura, movilidad, sellante, otro]
+        superficies:
+          type: ["string", "null"]
+        observacion:
+          type: ["string", "null"]
+        colorMarca:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+          format: date-time
+
+    OdontodiagramaInput:
+      type: object
+      required: [piezas]
+      properties:
+        piezas:
+          type: array
+          items:
+            $ref: "#/components/schemas/PiezaDentalInput"
+
+    PiezaDentalInput:
+      type: object
+      required: [numeroPieza, estado]
+      properties:
+        numeroPieza:
+          type: string
+        estado:
+          type: string
+          enum: [sano, caries, obturado, ausente, corona, implante, endodoncia, extraccion_indicada, fractura, movilidad, sellante, otro]
+        superficies:
+          type: ["string", "null"]
+        observacion:
+          type: ["string", "null"]
+        colorMarca:
+          type: ["string", "null"]
+
+    Diagnostico:
+      type: object
+      required: [id, pacienteId, codigosCie10, descripcion, fechaDiagnostico]
+      properties:
+        id:
+          type: integer
+        pacienteId:
+          type: integer
+        codigosCie10:
+          type: string
+        descripcion:
+          type: string
+        fechaDiagnostico:
+          type: string
+          format: date
+        observaciones:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    DiagnosticoInput:
+      type: object
+      required: [codigosCie10, descripcion]
+      properties:
+        codigosCie10:
+          type: string
+        descripcion:
+          type: string
+        fechaDiagnostico:
+          type: ["string", "null"]
+          format: date
+        observaciones:
+          type: ["string", "null"]
+
+    TipoTratamiento:
+      type: object
+      required: [id, nombre, precioReferencia]
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        subtipo:
+          type: ["string", "null"]
+        codigo:
+          type: ["string", "null"]
+        precioReferencia:
+          type: number
+        descripcion:
+          type: ["string", "null"]
+        activo:
+          type: boolean
+
+    PlanTratamiento:
+      type: object
+      required: [id, pacienteId, tipoTratamientoId, cantidad, precioUnitario, estado]
+      properties:
+        id:
+          type: integer
+        pacienteId:
+          type: integer
+        tipoTratamientoId:
+          type: integer
+        tipoTratamiento:
+          $ref: "#/components/schemas/TipoTratamiento"
+        numeroPieza:
+          type: ["string", "null"]
+        subtipoDetalle:
+          type: ["string", "null"]
+        cantidad:
+          type: integer
+        precioUnitario:
+          type: number
+        descuento:
+          type: number
+        total:
+          type: number
+        estado:
+          type: string
+          enum: [pendiente, en_proceso, completado, cancelado]
+        prioridad:
+          type: ["integer", "null"]
+        notas:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    PlanTratamientoInput:
+      type: object
+      required: [tipoTratamientoId, cantidad, precioUnitario]
+      properties:
+        tipoTratamientoId:
+          type: integer
+        numeroPieza:
+          type: ["string", "null"]
+        subtipoDetalle:
+          type: ["string", "null"]
+        cantidad:
+          type: integer
+        precioUnitario:
+          type: number
+        descuento:
+          type: number
+        estado:
+          type: string
+          enum: [pendiente, en_proceso, completado, cancelado]
+        prioridad:
+          type: ["integer", "null"]
+        notas:
+          type: ["string", "null"]
+
+    PlanTratamientoUpdate:
+      type: object
+      properties:
+        cantidad:
+          type: integer
+        precioUnitario:
+          type: number
+        descuento:
+          type: number
+        estado:
+          type: string
+          enum: [pendiente, en_proceso, completado, cancelado]
+        prioridad:
+          type: ["integer", "null"]
+        notas:
+          type: ["string", "null"]
+        numeroPieza:
+          type: ["string", "null"]
+        subtipoDetalle:
+          type: ["string", "null"]
+
+    Sesion:
+      type: object
+      required: [id, pacienteId, fechaSesion, tratamientoRealizado, importe]
+      properties:
+        id:
+          type: integer
+        pacienteId:
+          type: integer
+        planTratamientoId:
+          type: ["integer", "null"]
+        fechaSesion:
+          type: string
+          format: date
+        tratamientoRealizado:
+          type: string
+        observaciones:
+          type: ["string", "null"]
+        importe:
+          type: number
+        odontologoId:
+          type: ["integer", "null"]
+        confirmado:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    SesionInput:
+      type: object
+      required: [fechaSesion, tratamientoRealizado, importe]
+      properties:
+        fechaSesion:
+          type: string
+          format: date
+        tratamientoRealizado:
+          type: string
+        observaciones:
+          type: ["string", "null"]
+        importe:
+          type: number
+        planTratamientoId:
+          type: ["integer", "null"]
+        confirmado:
+          type: boolean
+
+    SesionUpdate:
+      type: object
+      properties:
+        fechaSesion:
+          type: string
+          format: date
+        tratamientoRealizado:
+          type: string
+        observaciones:
+          type: ["string", "null"]
+        importe:
+          type: number
+        confirmado:
+          type: boolean
+
+    Pago:
+      type: object
+      required: [id, pacienteId, monto, metodoPago, fechaPago]
+      properties:
+        id:
+          type: integer
+        pacienteId:
+          type: integer
+        sesionId:
+          type: ["integer", "null"]
+        monto:
+          type: number
+        metodoPago:
+          type: string
+          enum: [efectivo, transferencia, tarjeta, yape, plin, otro]
+        numeroOperacion:
+          type: ["string", "null"]
+        notas:
+          type: ["string", "null"]
+        fechaPago:
+          type: string
+          format: date-time
+
+    PagoInput:
+      type: object
+      required: [monto, metodoPago]
+      properties:
+        monto:
+          type: number
+        metodoPago:
+          type: string
+          enum: [efectivo, transferencia, tarjeta, yape, plin, otro]
+        sesionId:
+          type: ["integer", "null"]
+        numeroOperacion:
+          type: ["string", "null"]
+        notas:
+          type: ["string", "null"]
+
+    ResumenPagos:
+      type: object
+      required: [totalPlan, totalPagado, saldo]
+      properties:
+        totalPlan:
+          type: number
+        totalPagado:
+          type: number
+        saldo:
+          type: number
+
+    DashboardStats:
+      type: object
+      required: [totalPacientes, pacientesEsteMes, sesionesHoy, sesionesMes, tratamientosPendientes, tratamientosCompletados, ingresosHoy, ingresosMes]
+      properties:
+        totalPacientes:
+          type: integer
+        pacientesEsteMes:
+          type: integer
+        sesionesHoy:
+          type: integer
+        sesionesMes:
+          type: integer
+        tratamientosPendientes:
+          type: integer
+        tratamientosCompletados:
+          type: integer
+        ingresosHoy:
+          type: number
+        ingresosMes:
+          type: number
+
+    ActividadItem:
+      type: object
+      required: [tipo, descripcion, fecha]
+      properties:
+        tipo:
+          type: string
+          enum: [nuevo_paciente, sesion_registrada, tratamiento_completado, pago_registrado]
+        descripcion:
+          type: string
+        pacienteNombre:
+          type: ["string", "null"]
+        pacienteId:
+          type: ["integer", "null"]
+        fecha:
+          type: string
+          format: date-time
+        importe:
+          type: ["number", "null"]

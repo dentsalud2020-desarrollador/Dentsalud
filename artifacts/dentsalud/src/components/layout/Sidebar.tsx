@@ -1,13 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  LayoutDashboard, Users, LogOut, Stethoscope,
+  LayoutDashboard, Users, LogOut, Stethoscope, CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/pacientes", label: "Pacientes", icon: Users },
+  { href: "/citas", label: "Agenda / Citas", icon: CalendarDays },
 ];
 
 export function Sidebar() {

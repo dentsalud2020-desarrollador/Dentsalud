@@ -695,7 +695,208 @@ export const GetDashboardStatsResponse = zod.object({
   "tratamientosPendientes": zod.number(),
   "tratamientosCompletados": zod.number(),
   "ingresosHoy": zod.number(),
-  "ingresosMes": zod.number()
+  "ingresosMes": zod.number(),
+  "citasHoy": zod.number(),
+  "citasPendientes": zod.number()
+})
+
+
+/**
+ * @summary List appointments
+ */
+export const getCitasQueryLimitDefault = 100;
+
+export const GetCitasQueryParams = zod.object({
+  "fecha": zod.date().optional(),
+  "estado": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().default(getCitasQueryLimitDefault)
+})
+
+export const GetCitasResponseItem = zod.object({
+  "id": zod.number(),
+  "pacienteId": zod.number(),
+  "odontologoId": zod.number(),
+  "tipoTratamientoId": zod.number().nullish(),
+  "fechaCita": zod.coerce.date(),
+  "horaInicio": zod.string(),
+  "horaFin": zod.string(),
+  "motivo": zod.string().nullish(),
+  "estado": zod.enum(['programada', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio']),
+  "canalReserva": zod.enum(['presencial', 'telefono', 'whatsapp', 'web']),
+  "notas": zod.string().nullish(),
+  "createdAt": zod.coerce.date().optional()
+}).and(zod.object({
+  "pacienteNombres": zod.string().nullish(),
+  "pacienteApellidos": zod.string().nullish(),
+  "pacienteDni": zod.string().nullish(),
+  "tipoTratamientoNombre": zod.string().nullish()
+}))
+export const GetCitasResponse = zod.array(GetCitasResponseItem)
+
+
+/**
+ * @summary Create appointment
+ */
+export const CreateCitaBody = zod.object({
+  "pacienteId": zod.number(),
+  "odontologoId": zod.number(),
+  "tipoTratamientoId": zod.number().nullish(),
+  "fechaCita": zod.coerce.date(),
+  "horaInicio": zod.string(),
+  "horaFin": zod.string(),
+  "motivo": zod.string().nullish(),
+  "estado": zod.enum(['programada', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio']).optional(),
+  "canalReserva": zod.enum(['presencial', 'telefono', 'whatsapp', 'web']).optional(),
+  "notas": zod.string().nullish()
+})
+
+
+/**
+ * @summary Get today's appointments
+ */
+export const GetCitasHoyResponseItem = zod.object({
+  "id": zod.number(),
+  "pacienteId": zod.number(),
+  "odontologoId": zod.number(),
+  "tipoTratamientoId": zod.number().nullish(),
+  "fechaCita": zod.coerce.date(),
+  "horaInicio": zod.string(),
+  "horaFin": zod.string(),
+  "motivo": zod.string().nullish(),
+  "estado": zod.enum(['programada', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio']),
+  "canalReserva": zod.enum(['presencial', 'telefono', 'whatsapp', 'web']),
+  "notas": zod.string().nullish(),
+  "createdAt": zod.coerce.date().optional()
+}).and(zod.object({
+  "pacienteNombres": zod.string().nullish(),
+  "pacienteApellidos": zod.string().nullish(),
+  "pacienteDni": zod.string().nullish(),
+  "tipoTratamientoNombre": zod.string().nullish()
+}))
+export const GetCitasHoyResponse = zod.array(GetCitasHoyResponseItem)
+
+
+/**
+ * @summary Get upcoming appointments
+ */
+export const GetCitasProximasResponseItem = zod.object({
+  "id": zod.number(),
+  "pacienteId": zod.number(),
+  "odontologoId": zod.number(),
+  "tipoTratamientoId": zod.number().nullish(),
+  "fechaCita": zod.coerce.date(),
+  "horaInicio": zod.string(),
+  "horaFin": zod.string(),
+  "motivo": zod.string().nullish(),
+  "estado": zod.enum(['programada', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio']),
+  "canalReserva": zod.enum(['presencial', 'telefono', 'whatsapp', 'web']),
+  "notas": zod.string().nullish(),
+  "createdAt": zod.coerce.date().optional()
+}).and(zod.object({
+  "pacienteNombres": zod.string().nullish(),
+  "pacienteApellidos": zod.string().nullish(),
+  "pacienteDni": zod.string().nullish(),
+  "tipoTratamientoNombre": zod.string().nullish()
+}))
+export const GetCitasProximasResponse = zod.array(GetCitasProximasResponseItem)
+
+
+/**
+ * @summary Get appointment by ID
+ */
+export const GetCitaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetCitaResponse = zod.object({
+  "id": zod.number(),
+  "pacienteId": zod.number(),
+  "odontologoId": zod.number(),
+  "tipoTratamientoId": zod.number().nullish(),
+  "fechaCita": zod.coerce.date(),
+  "horaInicio": zod.string(),
+  "horaFin": zod.string(),
+  "motivo": zod.string().nullish(),
+  "estado": zod.enum(['programada', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio']),
+  "canalReserva": zod.enum(['presencial', 'telefono', 'whatsapp', 'web']),
+  "notas": zod.string().nullish(),
+  "createdAt": zod.coerce.date().optional()
+}).and(zod.object({
+  "pacienteNombres": zod.string().nullish(),
+  "pacienteApellidos": zod.string().nullish(),
+  "pacienteDni": zod.string().nullish(),
+  "tipoTratamientoNombre": zod.string().nullish()
+}))
+
+
+/**
+ * @summary Update appointment
+ */
+export const UpdateCitaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCitaBody = zod.object({
+  "pacienteId": zod.number(),
+  "odontologoId": zod.number(),
+  "tipoTratamientoId": zod.number().nullish(),
+  "fechaCita": zod.coerce.date(),
+  "horaInicio": zod.string(),
+  "horaFin": zod.string(),
+  "motivo": zod.string().nullish(),
+  "estado": zod.enum(['programada', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio']).optional(),
+  "canalReserva": zod.enum(['presencial', 'telefono', 'whatsapp', 'web']).optional(),
+  "notas": zod.string().nullish()
+})
+
+export const UpdateCitaResponse = zod.object({
+  "id": zod.number(),
+  "pacienteId": zod.number(),
+  "odontologoId": zod.number(),
+  "tipoTratamientoId": zod.number().nullish(),
+  "fechaCita": zod.coerce.date(),
+  "horaInicio": zod.string(),
+  "horaFin": zod.string(),
+  "motivo": zod.string().nullish(),
+  "estado": zod.enum(['programada', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio']),
+  "canalReserva": zod.enum(['presencial', 'telefono', 'whatsapp', 'web']),
+  "notas": zod.string().nullish(),
+  "createdAt": zod.coerce.date().optional()
+})
+
+
+/**
+ * @summary Delete appointment
+ */
+export const DeleteCitaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Update appointment status
+ */
+export const UpdateCitaEstadoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCitaEstadoBody = zod.object({
+  "estado": zod.enum(['programada', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio'])
+})
+
+export const UpdateCitaEstadoResponse = zod.object({
+  "id": zod.number(),
+  "pacienteId": zod.number(),
+  "odontologoId": zod.number(),
+  "tipoTratamientoId": zod.number().nullish(),
+  "fechaCita": zod.coerce.date(),
+  "horaInicio": zod.string(),
+  "horaFin": zod.string(),
+  "motivo": zod.string().nullish(),
+  "estado": zod.enum(['programada', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio']),
+  "canalReserva": zod.enum(['presencial', 'telefono', 'whatsapp', 'web']),
+  "notas": zod.string().nullish(),
+  "createdAt": zod.coerce.date().optional()
 })
 
 

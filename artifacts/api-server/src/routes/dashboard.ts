@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { eq, gte, and, sql, desc } from "drizzle-orm";
-import { db, pacientesTable, sesionesRealizadasTable, planTratamientosTable, pagosTable } from "@workspace/db";
+import { db, pacientesTable, sesionesRealizadasTable, planTratamientosTable, pagosTable, citasTable } from "@workspace/db";
 import { GetActividadRecienteQueryParams } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
 
@@ -35,6 +35,12 @@ router.get("/dashboard/stats", requireAuth, async (_req, res): Promise<void> => 
   const sesionesMesRows = await db.select().from(sesionesRealizadasTable).where(gte(sesionesRealizadasTable.createdAt, firstOfMonth));
   const ingresosMes = sesionesMesRows.reduce((s, r) => s + Number(r.importe), 0);
 
+  const [{ total: citasHoy }] = await db.select({ total: sql<number>`count(*)` })
+    .from(citasTable).where(eq(citasTable.fechaCita, today));
+
+  const [{ total: citasPendientes }] = await db.select({ total: sql<number>`count(*)` })
+    .from(citasTable).where(and(eq(citasTable.fechaCita, today), eq(citasTable.estado, "programada")));
+
   res.json({
     totalPacientes: Number(totalPacientes),
     pacientesEsteMes: Number(pacientesEsteMes),
@@ -44,6 +50,8 @@ router.get("/dashboard/stats", requireAuth, async (_req, res): Promise<void> => 
     tratamientosCompletados: Number(tratamientosCompletados),
     ingresosHoy,
     ingresosMes,
+    citasHoy: Number(citasHoy),
+    citasPendientes: Number(citasPendientes),
   });
 });
 

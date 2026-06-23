@@ -492,6 +492,113 @@ export interface DashboardStats {
   tratamientosCompletados: number;
   ingresosHoy: number;
   ingresosMes: number;
+  citasHoy: number;
+  citasPendientes: number;
+}
+
+export type CitaEstado = typeof CitaEstado[keyof typeof CitaEstado];
+
+
+export const CitaEstado = {
+  programada: 'programada',
+  confirmada: 'confirmada',
+  en_atencion: 'en_atencion',
+  completada: 'completada',
+  cancelada: 'cancelada',
+  no_asistio: 'no_asistio',
+} as const;
+
+export type CitaCanalReserva = typeof CitaCanalReserva[keyof typeof CitaCanalReserva];
+
+
+export const CitaCanalReserva = {
+  presencial: 'presencial',
+  telefono: 'telefono',
+  whatsapp: 'whatsapp',
+  web: 'web',
+} as const;
+
+export interface Cita {
+  id: number;
+  pacienteId: number;
+  odontologoId: number;
+  /** @nullable */
+  tipoTratamientoId?: number | null;
+  fechaCita: string;
+  horaInicio: string;
+  horaFin: string;
+  /** @nullable */
+  motivo?: string | null;
+  estado: CitaEstado;
+  canalReserva: CitaCanalReserva;
+  /** @nullable */
+  notas?: string | null;
+  createdAt?: string;
+}
+
+export type CitaDetalle = Cita & ({
+  /** @nullable */
+  pacienteNombres?: string | null;
+  /** @nullable */
+  pacienteApellidos?: string | null;
+  /** @nullable */
+  pacienteDni?: string | null;
+  /** @nullable */
+  tipoTratamientoNombre?: string | null;
+});
+
+export type CitaEstadoInputEstado = typeof CitaEstadoInputEstado[keyof typeof CitaEstadoInputEstado];
+
+
+export const CitaEstadoInputEstado = {
+  programada: 'programada',
+  confirmada: 'confirmada',
+  en_atencion: 'en_atencion',
+  completada: 'completada',
+  cancelada: 'cancelada',
+  no_asistio: 'no_asistio',
+} as const;
+
+export interface CitaEstadoInput {
+  estado: CitaEstadoInputEstado;
+}
+
+export type CitaInputEstado = typeof CitaInputEstado[keyof typeof CitaInputEstado];
+
+
+export const CitaInputEstado = {
+  programada: 'programada',
+  confirmada: 'confirmada',
+  en_atencion: 'en_atencion',
+  completada: 'completada',
+  cancelada: 'cancelada',
+  no_asistio: 'no_asistio',
+} as const;
+
+export type CitaInputCanalReserva = typeof CitaInputCanalReserva[keyof typeof CitaInputCanalReserva];
+
+
+export const CitaInputCanalReserva = {
+  presencial: 'presencial',
+  telefono: 'telefono',
+  whatsapp: 'whatsapp',
+  web: 'web',
+} as const;
+
+export interface CitaInput {
+  pacienteId: number;
+  odontologoId: number;
+  /** @nullable */
+  tipoTratamientoId?: number | null;
+  fechaCita: string;
+  horaInicio: string;
+  horaFin: string;
+  /** @nullable */
+  motivo?: string | null;
+  estado?: CitaInputEstado;
+  canalReserva?: CitaInputCanalReserva;
+  /** @nullable */
+  notas?: string | null;
 }
 
 export type ActividadItemTipo = typeof ActividadItemTipo[keyof typeof ActividadItemTipo];
@@ -520,6 +627,12 @@ export type ListPacientesParams = {
 busqueda?: string;
 pagina?: number;
 limite?: number;
+};
+
+export type GetCitasParams = {
+fecha?: string;
+estado?: string;
+limit?: number;
 };
 
 export type GetActividadRecienteParams = {

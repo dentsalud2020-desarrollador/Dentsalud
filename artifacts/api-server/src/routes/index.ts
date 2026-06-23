@@ -8,6 +8,7 @@ import tratamientosRouter from "./tratamientos";
 import sesionesRouter from "./sesiones";
 import pagosRouter from "./pagos";
 import dashboardRouter from "./dashboard";
+import citasRouter from "./citas";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(tratamientosRouter);
 router.use(sesionesRouter);
 router.use(pagosRouter);
 router.use(dashboardRouter);
+router.use(citasRouter);
 
 export default router;

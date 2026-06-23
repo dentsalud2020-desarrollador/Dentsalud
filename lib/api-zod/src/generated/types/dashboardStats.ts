@@ -15,4 +15,6 @@ export interface DashboardStats {
   tratamientosCompletados: number;
   ingresosHoy: number;
   ingresosMes: number;
+  citasHoy: number;
+  citasPendientes: number;
 }

@@ -9,3 +9,4 @@ export * from "./tipos_tratamiento";
 export * from "./plan_tratamientos";
 export * from "./sesiones";
 export * from "./pagos";
+export * from "./citas";

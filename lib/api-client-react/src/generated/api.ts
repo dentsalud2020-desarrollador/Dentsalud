@@ -24,12 +24,17 @@ import type {
   Antecedentes,
   AntecedentesInput,
   AuthResponse,
+  Cita,
+  CitaDetalle,
+  CitaEstadoInput,
+  CitaInput,
   DashboardStats,
   Diagnostico,
   DiagnosticoInput,
   ExamenClinico,
   ExamenClinicoInput,
   GetActividadRecienteParams,
+  GetCitasParams,
   HealthStatus,
   ListPacientesParams,
   LoginInput,
@@ -2214,6 +2219,606 @@ export function useGetDashboardStats<TData = Awaited<ReturnType<typeof getDashbo
 
 
 
+
+export const getGetCitasUrl = (params?: GetCitasParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/citas?${stringifiedParams}` : `/api/citas`
+}
+
+/**
+ * @summary List appointments
+ */
+export const getCitas = async (params?: GetCitasParams, options?: RequestInit): Promise<CitaDetalle[]> => {
+
+  return customFetch<CitaDetalle[]>(getGetCitasUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCitasQueryKey = (params?: GetCitasParams,) => {
+    return [
+    `/api/citas`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCitasQueryOptions = <TData = Awaited<ReturnType<typeof getCitas>>, TError = ErrorType<unknown>>(params?: GetCitasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCitas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCitasQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCitas>>> = ({ signal }) => getCitas(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCitas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCitasQueryResult = NonNullable<Awaited<ReturnType<typeof getCitas>>>
+export type GetCitasQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List appointments
+ */
+
+export function useGetCitas<TData = Awaited<ReturnType<typeof getCitas>>, TError = ErrorType<unknown>>(
+ params?: GetCitasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCitas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCitasQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateCitaUrl = () => {
+
+
+
+
+  return `/api/citas`
+}
+
+/**
+ * @summary Create appointment
+ */
+export const createCita = async (citaInput: CitaInput, options?: RequestInit): Promise<Cita> => {
+
+  return customFetch<Cita>(getCreateCitaUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      citaInput,)
+  }
+);}
+
+
+
+
+export const getCreateCitaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCita>>, TError,{data: BodyType<CitaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCita>>, TError,{data: BodyType<CitaInput>}, TContext> => {
+
+const mutationKey = ['createCita'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCita>>, {data: BodyType<CitaInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCita(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCitaMutationResult = NonNullable<Awaited<ReturnType<typeof createCita>>>
+    export type CreateCitaMutationBody = BodyType<CitaInput>
+    export type CreateCitaMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create appointment
+ */
+export const useCreateCita = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCita>>, TError,{data: BodyType<CitaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCita>>,
+        TError,
+        {data: BodyType<CitaInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCitaMutationOptions(options));
+    }
+
+export const getGetCitasHoyUrl = () => {
+
+
+
+
+  return `/api/citas/hoy`
+}
+
+/**
+ * @summary Get today's appointments
+ */
+export const getCitasHoy = async ( options?: RequestInit): Promise<CitaDetalle[]> => {
+
+  return customFetch<CitaDetalle[]>(getGetCitasHoyUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCitasHoyQueryKey = () => {
+    return [
+    `/api/citas/hoy`
+    ] as const;
+    }
+
+
+export const getGetCitasHoyQueryOptions = <TData = Awaited<ReturnType<typeof getCitasHoy>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCitasHoy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCitasHoyQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCitasHoy>>> = ({ signal }) => getCitasHoy({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCitasHoy>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCitasHoyQueryResult = NonNullable<Awaited<ReturnType<typeof getCitasHoy>>>
+export type GetCitasHoyQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get today's appointments
+ */
+
+export function useGetCitasHoy<TData = Awaited<ReturnType<typeof getCitasHoy>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCitasHoy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCitasHoyQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCitasProximasUrl = () => {
+
+
+
+
+  return `/api/citas/proximas`
+}
+
+/**
+ * @summary Get upcoming appointments
+ */
+export const getCitasProximas = async ( options?: RequestInit): Promise<CitaDetalle[]> => {
+
+  return customFetch<CitaDetalle[]>(getGetCitasProximasUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCitasProximasQueryKey = () => {
+    return [
+    `/api/citas/proximas`
+    ] as const;
+    }
+
+
+export const getGetCitasProximasQueryOptions = <TData = Awaited<ReturnType<typeof getCitasProximas>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCitasProximas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCitasProximasQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCitasProximas>>> = ({ signal }) => getCitasProximas({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCitasProximas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCitasProximasQueryResult = NonNullable<Awaited<ReturnType<typeof getCitasProximas>>>
+export type GetCitasProximasQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get upcoming appointments
+ */
+
+export function useGetCitasProximas<TData = Awaited<ReturnType<typeof getCitasProximas>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCitasProximas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCitasProximasQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCitaUrl = (id: number,) => {
+
+
+
+
+  return `/api/citas/${id}`
+}
+
+/**
+ * @summary Get appointment by ID
+ */
+export const getCita = async (id: number, options?: RequestInit): Promise<CitaDetalle> => {
+
+  return customFetch<CitaDetalle>(getGetCitaUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCitaQueryKey = (id: number,) => {
+    return [
+    `/api/citas/${id}`
+    ] as const;
+    }
+
+
+export const getGetCitaQueryOptions = <TData = Awaited<ReturnType<typeof getCita>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCita>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCitaQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCita>>> = ({ signal }) => getCita(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCita>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCitaQueryResult = NonNullable<Awaited<ReturnType<typeof getCita>>>
+export type GetCitaQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get appointment by ID
+ */
+
+export function useGetCita<TData = Awaited<ReturnType<typeof getCita>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCita>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCitaQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateCitaUrl = (id: number,) => {
+
+
+
+
+  return `/api/citas/${id}`
+}
+
+/**
+ * @summary Update appointment
+ */
+export const updateCita = async (id: number,
+    citaInput: CitaInput, options?: RequestInit): Promise<Cita> => {
+
+  return customFetch<Cita>(getUpdateCitaUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      citaInput,)
+  }
+);}
+
+
+
+
+export const getUpdateCitaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCita>>, TError,{id: number;data: BodyType<CitaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCita>>, TError,{id: number;data: BodyType<CitaInput>}, TContext> => {
+
+const mutationKey = ['updateCita'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCita>>, {id: number;data: BodyType<CitaInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCita(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCitaMutationResult = NonNullable<Awaited<ReturnType<typeof updateCita>>>
+    export type UpdateCitaMutationBody = BodyType<CitaInput>
+    export type UpdateCitaMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update appointment
+ */
+export const useUpdateCita = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCita>>, TError,{id: number;data: BodyType<CitaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCita>>,
+        TError,
+        {id: number;data: BodyType<CitaInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCitaMutationOptions(options));
+    }
+
+export const getDeleteCitaUrl = (id: number,) => {
+
+
+
+
+  return `/api/citas/${id}`
+}
+
+/**
+ * @summary Delete appointment
+ */
+export const deleteCita = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteCitaUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteCitaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCita>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCita>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCita'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCita>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCita(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCitaMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCita>>>
+
+    export type DeleteCitaMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete appointment
+ */
+export const useDeleteCita = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCita>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCita>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCitaMutationOptions(options));
+    }
+
+export const getUpdateCitaEstadoUrl = (id: number,) => {
+
+
+
+
+  return `/api/citas/${id}/estado`
+}
+
+/**
+ * @summary Update appointment status
+ */
+export const updateCitaEstado = async (id: number,
+    citaEstadoInput: CitaEstadoInput, options?: RequestInit): Promise<Cita> => {
+
+  return customFetch<Cita>(getUpdateCitaEstadoUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      citaEstadoInput,)
+  }
+);}
+
+
+
+
+export const getUpdateCitaEstadoMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCitaEstado>>, TError,{id: number;data: BodyType<CitaEstadoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCitaEstado>>, TError,{id: number;data: BodyType<CitaEstadoInput>}, TContext> => {
+
+const mutationKey = ['updateCitaEstado'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCitaEstado>>, {id: number;data: BodyType<CitaEstadoInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCitaEstado(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCitaEstadoMutationResult = NonNullable<Awaited<ReturnType<typeof updateCitaEstado>>>
+    export type UpdateCitaEstadoMutationBody = BodyType<CitaEstadoInput>
+    export type UpdateCitaEstadoMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update appointment status
+ */
+export const useUpdateCitaEstado = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCitaEstado>>, TError,{id: number;data: BodyType<CitaEstadoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCitaEstado>>,
+        TError,
+        {id: number;data: BodyType<CitaEstadoInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCitaEstadoMutationOptions(options));
+    }
 
 export const getGetActividadRecienteUrl = (params?: GetActividadRecienteParams,) => {
   const normalizedParams = new URLSearchParams();

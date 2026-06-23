@@ -628,6 +628,170 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardStats"
 
+  /citas:
+    get:
+      operationId: getCitas
+      tags: [citas]
+      summary: List appointments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fecha
+          in: query
+          schema: { type: string, format: date }
+        - name: estado
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100 }
+      responses:
+        "200":
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CitaDetalle"
+    post:
+      operationId: createCita
+      tags: [citas]
+      summary: Create appointment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CitaInput"
+      responses:
+        "201":
+          description: Created appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cita"
+
+  /citas/hoy:
+    get:
+      operationId: getCitasHoy
+      tags: [citas]
+      summary: Get today's appointments
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Today's appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CitaDetalle"
+
+  /citas/proximas:
+    get:
+      operationId: getCitasProximas
+      tags: [citas]
+      summary: Get upcoming appointments
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Upcoming appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CitaDetalle"
+
+  /citas/{id}:
+    get:
+      operationId: getCita
+      tags: [citas]
+      summary: Get appointment by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Appointment detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CitaDetalle"
+    put:
+      operationId: updateCita
+      tags: [citas]
+      summary: Update appointment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CitaInput"
+      responses:
+        "200":
+          description: Updated appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cita"
+    delete:
+      operationId: deleteCita
+      tags: [citas]
+      summary: Delete appointment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /citas/{id}/estado:
+    patch:
+      operationId: updateCitaEstado
+      tags: [citas]
+      summary: Update appointment status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CitaEstadoInput"
+      responses:
+        "200":
+          description: Updated appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cita"
+
   /dashboard/actividad-reciente:
     get:
       operationId: getActividadReciente
@@ -1243,7 +1407,7 @@ components:
 
     DashboardStats:
       type: object
-      required: [totalPacientes, pacientesEsteMes, sesionesHoy, sesionesMes, tratamientosPendientes, tratamientosCompletados, ingresosHoy, ingresosMes]
+      required: [totalPacientes, pacientesEsteMes, sesionesHoy, sesionesMes, tratamientosPendientes, tratamientosCompletados, ingresosHoy, ingresosMes, citasHoy, citasPendientes]
       properties:
         totalPacientes:
           type: integer
@@ -1261,6 +1425,93 @@ components:
           type: number
         ingresosMes:
           type: number
+        citasHoy:
+          type: integer
+        citasPendientes:
+          type: integer
+
+    Cita:
+      type: object
+      required: [id, pacienteId, odontologoId, fechaCita, horaInicio, horaFin, estado, canalReserva]
+      properties:
+        id:
+          type: integer
+        pacienteId:
+          type: integer
+        odontologoId:
+          type: integer
+        tipoTratamientoId:
+          type: ["integer", "null"]
+        fechaCita:
+          type: string
+          format: date
+        horaInicio:
+          type: string
+        horaFin:
+          type: string
+        motivo:
+          type: ["string", "null"]
+        estado:
+          type: string
+          enum: [programada, confirmada, en_atencion, completada, cancelada, no_asistio]
+        canalReserva:
+          type: string
+          enum: [presencial, telefono, whatsapp, web]
+        notas:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    CitaDetalle:
+      allOf:
+        - $ref: "#/components/schemas/Cita"
+        - type: object
+          properties:
+            pacienteNombres:
+              type: ["string", "null"]
+            pacienteApellidos:
+              type: ["string", "null"]
+            pacienteDni:
+              type: ["string", "null"]
+            tipoTratamientoNombre:
+              type: ["string", "null"]
+
+    CitaEstadoInput:
+      type: object
+      required: [estado]
+      properties:
+        estado:
+          type: string
+          enum: [programada, confirmada, en_atencion, completada, cancelada, no_asistio]
+
+    CitaInput:
+      type: object
+      required: [pacienteId, odontologoId, fechaCita, horaInicio, horaFin]
+      properties:
+        pacienteId:
+          type: integer
+        odontologoId:
+          type: integer
+        tipoTratamientoId:
+          type: ["integer", "null"]
+        fechaCita:
+          type: string
+          format: date
+        horaInicio:
+          type: string
+        horaFin:
+          type: string
+        motivo:
+          type: ["string", "null"]
+        estado:
+          type: string
+          enum: [programada, confirmada, en_atencion, completada, cancelada, no_asistio]
+        canalReserva:
+          type: string
+          enum: [presencial, telefono, whatsapp, web]
+        notas:
+          type: ["string", "null"]
 
     ActividadItem:
       type: object

@@ -39,7 +39,8 @@ app.use(express.static(publicPath));
 app.use("/api", router);
 
 // Ruta catch-all para servir index.html (para soporte de SPA routing)
-app.get("*", (req, res) => {
+// Express 5 requiere '*path' en lugar de '*' para ser compatible con path-to-regexp
+app.get("*path", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 

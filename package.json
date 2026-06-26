@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "preinstall": "node -e \"const fs=require('fs');['package-lock.json','yarn.lock'].forEach(f=>{try{fs.unlinkSync(f)}catch(_){}});if(!process.env.npm_config_user_agent||!process.env.npm_config_user_agent.startsWith('pnpm/')){process.stderr.write('Use pnpm instead\\n');process.exit(1)}\"",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "build": "pnpm run typecheck && pnpm -r --if-present run build && pnpm run build:copy-frontend",
+    "build:copy-frontend": "node -e \"const fs = require('fs'); const path = require('path'); const src = path.join(process.cwd(), 'artifacts', 'dentsalud', 'dist', 'public'); const dest = path.join(process.cwd(), 'artifacts', 'api-server', 'dist', 'public'); if (fs.existsSync(src)) { fs.cpSync(src, dest, { recursive: true, force: true }); console.log('Frontend files copied to api-server/dist/public'); } else { console.log('Frontend build output not found'); }\"",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },

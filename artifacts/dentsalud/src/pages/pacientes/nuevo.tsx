@@ -5,6 +5,7 @@ import { useLocation, Link } from "wouter";
 import { ArrowLeft, Save, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ export default function NuevoPacientePage() {
     fechaNacimiento: "",
     telefono: "",
     dni: "",
+    tipoDocumento: "DNI",
     domicilio: "",
     correo: "",
     motivoConsulta: "",
@@ -55,6 +57,23 @@ export default function NuevoPacientePage() {
   };
 
   const update = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
+
+  const onChangeTelefono = (v: string) => {
+    const digits = v.replace(/\D/g, "");
+    update("telefono", digits.slice(0, 9));
+  };
+
+  const onChangeDni = (v: string) => {
+    if (form.tipoDocumento === "DNI") {
+      // only digits, max 8
+      const digits = v.replace(/\D/g, "");
+      update("dni", digits.slice(0, 8));
+    } else {
+      // Carnet de extranjeria: allow alphanumeric, up to 12
+      const clean = v.replace(/[^a-zA-Z0-9]/g, "");
+      update("dni", clean.slice(0, 12));
+    }
+  };
 
   return (
     <Layout>
@@ -103,14 +122,28 @@ export default function NuevoPacientePage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="dni">DNI</Label>
+                <Label htmlFor="tipoDocumento">Tipo de documento</Label>
+                <Select
+                  value={form.tipoDocumento}
+                  onValueChange={(v) => update("tipoDocumento", v)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DNI">DNI</SelectItem>
+                    <SelectItem value="CE">Carnet de Extranjería</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Label htmlFor="dni" className="mt-2">Número</Label>
                 <Input
                   id="dni"
                   value={form.dni}
-                  onChange={e => update("dni", e.target.value)}
-                  placeholder="12345678"
-                  maxLength={8}
+                  onChange={e => onChangeDni(e.target.value)}
+                  placeholder={form.tipoDocumento === "DNI" ? "12345678" : "A1234567"}
+                  maxLength={form.tipoDocumento === "DNI" ? 8 : 12}
                 />
+                <p className="text-xs text-muted-foreground">{form.tipoDocumento === "DNI" ? "Solo números, 8 dígitos" : "Carnet: hasta 12 caracteres"}</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="fechaNacimiento">Fecha de Nacimiento</Label>
@@ -126,9 +159,11 @@ export default function NuevoPacientePage() {
                 <Input
                   id="telefono"
                   value={form.telefono}
-                  onChange={e => update("telefono", e.target.value)}
-                  placeholder="999 123 456"
+                  onChange={e => onChangeTelefono(e.target.value)}
+                  placeholder="999123456"
+                  maxLength={9}
                 />
+                <p className="text-xs text-muted-foreground">Solo números, 9 dígitos</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="correo">Correo electrónico</Label>

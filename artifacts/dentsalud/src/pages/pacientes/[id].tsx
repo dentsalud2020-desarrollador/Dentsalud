@@ -64,6 +64,7 @@ export default function PacienteDetailPage() {
     setDatosForm({
       nombres: p.nombres, apellidos: p.apellidos,
       dni: p.dni ?? "", telefono: p.telefono ?? "",
+      tipoDocumento: p.dni && /^\d{8}$/.test(p.dni) ? "DNI" : "CE",
       fechaNacimiento: p.fechaNacimiento ?? "", correo: p.correo ?? "",
       domicilio: p.domicilio ?? "", motivoConsulta: p.motivoConsulta ?? "",
     });
@@ -327,11 +328,50 @@ export default function PacienteDetailPage() {
                       ].map(({ key, label, required, type }) => (
                         <div key={key} className="space-y-1.5">
                           <Label>{label}{required && <span className="text-destructive">*</span>}</Label>
-                          <Input
-                            type={type ?? "text"}
-                            value={datosForm[key] ?? ""}
-                            onChange={e => setDatosForm(f => ({ ...f, [key]: e.target.value }))}
-                          />
+                          {key === "dni" ? (
+                            <>
+                              <Select value={datosForm.tipoDocumento ?? "DNI"} onValueChange={(v) => setDatosForm(f => ({ ...f, tipoDocumento: v }))}>
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="DNI">DNI</SelectItem>
+                                  <SelectItem value="CE">Carnet de Extranjería</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Input
+                                type="text"
+                                value={datosForm.dni ?? ""}
+                                onChange={e => {
+                                  const v = e.target.value;
+                                  if ((datosForm.tipoDocumento ?? "DNI") === "DNI") {
+                                    const digits = v.replace(/\D/g, "");
+                                    setDatosForm(f => ({ ...f, dni: digits.slice(0, 8) }));
+                                  } else {
+                                    const clean = v.replace(/[^a-zA-Z0-9]/g, "");
+                                    setDatosForm(f => ({ ...f, dni: clean.slice(0, 12) }));
+                                  }
+                                }}
+                              />
+                            </>
+                          ) : (
+                            key === "telefono" ? (
+                              <Input
+                                type={type ?? "text"}
+                                value={datosForm[key] ?? ""}
+                                onChange={e => {
+                                  const digits = e.target.value.replace(/\D/g, "");
+                                  setDatosForm(f => ({ ...f, telefono: digits.slice(0, 9) }));
+                                }}
+                              />
+                            ) : (
+                              <Input
+                                type={type ?? "text"}
+                                value={datosForm[key] ?? ""}
+                                onChange={e => setDatosForm(f => ({ ...f, [key]: e.target.value }))}
+                              />
+                            )
+                          )}
                         </div>
                       ))}
                       <div className="space-y-1.5 md:col-span-2">

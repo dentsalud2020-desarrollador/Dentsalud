@@ -49,12 +49,14 @@ export default function DashboardPage() {
   const { data: stats, isLoading: loadingStats } = useGetDashboardStats({
     query: { queryKey: getGetDashboardStatsQueryKey(), staleTime: 30000 },
   });
-  const { data: actividad, isLoading: loadingActividad } = useGetActividadReciente({ limite: 10 }, {
+  const { data: actividadRaw, isLoading: loadingActividad } = useGetActividadReciente({ limite: 10 }, {
     query: { queryKey: getGetActividadRecienteQueryKey({ limite: 10 }), staleTime: 30000 },
   });
-  const { data: citasHoy = [], isLoading: loadingCitas } = useGetCitasHoy({
+  const actividad = Array.isArray(actividadRaw) ? actividadRaw : [];
+  const { data: citasHoyRaw, isLoading: loadingCitas } = useGetCitasHoy({
     query: { queryKey: getGetCitasHoyQueryKey(), staleTime: 15000 },
   });
+  const citasHoy = Array.isArray(citasHoyRaw) ? citasHoyRaw : [];
 
   return (
     <Layout>

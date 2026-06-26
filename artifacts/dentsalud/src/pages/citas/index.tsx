@@ -101,9 +101,10 @@ export default function CitasPage() {
   const { toast } = useToast();
   const qc = useQueryClient();
 
-  const { data: citasHoy = [], isLoading: loadingHoy } = useGetCitasHoy({
+  const { data: citasHoyRaw, isLoading: loadingHoy } = useGetCitasHoy({
     query: { queryKey: getGetCitasHoyQueryKey(), staleTime: 10000 },
   });
+  const citasHoy = Array.isArray(citasHoyRaw) ? citasHoyRaw : [];
 
   const { data: todasCitas = [], isLoading: loadingTodas } = useGetCitas(
     { fecha: filterFecha || undefined },

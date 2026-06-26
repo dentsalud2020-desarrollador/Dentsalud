@@ -34,7 +34,17 @@ export function Layout({ children }: LayoutProps) {
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
-        {children}
+        <header className="bg-white border-b p-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-[#0b6fa1]">DentSalud</h2>
+            <div className="text-sm text-muted-foreground">Tu centro de armonía dentofacial</div>
+          </div>
+          <div className="text-right text-sm">
+            <div>044 - 637 622</div>
+            <div>997 054 525</div>
+          </div>
+        </header>
+        <div className="p-4">{children}</div>
       </main>
     </div>
   );

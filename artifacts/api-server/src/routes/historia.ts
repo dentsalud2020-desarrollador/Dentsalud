@@ -54,15 +54,18 @@ router.put("/pacientes/:id/examen-clinico", requireAuth, async (req, res): Promi
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const existing = await db.select().from(examenClinicoTable).where(eq(examenClinicoTable.pacienteId, params.data.id));
+  const insertData = { ...parsed.data, pacienteId: params.data.id };
+  const updateData = { ...parsed.data, updatedAt: new Date() };
+
   let row;
   if (existing.length > 0) {
     [row] = await db.update(examenClinicoTable)
-      .set({ ...parsed.data, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(examenClinicoTable.pacienteId, params.data.id))
       .returning();
   } else {
     [row] = await db.insert(examenClinicoTable)
-      .values({ ...parsed.data, pacienteId: params.data.id })
+      .values(insertData)
       .returning();
   }
   res.json(row);
@@ -85,10 +88,13 @@ router.post("/pacientes/:id/diagnosticos", requireAuth, async (req, res): Promis
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const today = new Date().toISOString().split("T")[0];
+  const fechaDiagnostico = parsed.data.fechaDiagnostico instanceof Date
+    ? parsed.data.fechaDiagnostico.toISOString().split("T")[0]
+    : parsed.data.fechaDiagnostico ?? today;
   const [row] = await db.insert(diagnosticosTable).values({
     ...parsed.data,
     pacienteId: params.data.id,
-    fechaDiagnostico: parsed.data.fechaDiagnostico ?? today,
+    fechaDiagnostico,
   }).returning();
   res.status(201).json(row);
 });

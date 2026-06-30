@@ -24,9 +24,14 @@ router.post("/pacientes/:id/sesiones", requireAuth, async (req: AuthRequest, res
   const parsed = CreateSesionBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
+  const fechaSesion = parsed.data.fechaSesion instanceof Date
+    ? parsed.data.fechaSesion.toISOString().split("T")[0]
+    : parsed.data.fechaSesion;
+
   const [row] = await db.insert(sesionesRealizadasTable).values({
     ...parsed.data,
     pacienteId: params.data.id,
+    fechaSesion,
     importe: String(parsed.data.importe),
     odontologoId: req.userId,
   }).returning();

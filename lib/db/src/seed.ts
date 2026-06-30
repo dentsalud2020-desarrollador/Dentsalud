@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import bcrypt from "bcryptjs";
@@ -602,8 +603,12 @@ async function seed() {
     const [row] = await db
       .select({ id: sesionesRealizadasTable.id })
       .from(sesionesRealizadasTable)
-      .where(eq(sesionesRealizadasTable.pacienteId, pacienteId))
-      .where(eq(sesionesRealizadasTable.fechaSesion, fechaSesion));
+      .where(
+        and(
+          eq(sesionesRealizadasTable.pacienteId, pacienteId),
+          eq(sesionesRealizadasTable.fechaSesion, fechaSesion),
+        ),
+      );
     return row?.id ?? null;
   };
 
@@ -783,7 +788,7 @@ async function seed() {
         metodoPago: pago.metodoPago,
         numeroOperacion: pago.numeroOperacion || null,
         notas: pago.notas,
-        fechaPago: pago.fechaPago,
+        fechaPago: new Date(pago.fechaPago),
         registradoPor:
           pago.registradoPorEmail === "alan@dentsalud.com"
             ? adminId

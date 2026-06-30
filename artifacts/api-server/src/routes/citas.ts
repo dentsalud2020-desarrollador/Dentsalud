@@ -25,7 +25,10 @@ const citaSelect = {
 };
 
 router.get("/citas", requireAuth, async (req, res): Promise<void> => {
-  const { fecha, estado, limit: limitStr } = req.query as Record<string, string | undefined>;
+  const queryParams = req.query as Record<string, string | string[] | undefined>;
+  const fecha = Array.isArray(queryParams.fecha) ? queryParams.fecha[0] : queryParams.fecha;
+  const estado = Array.isArray(queryParams.estado) ? queryParams.estado[0] : queryParams.estado;
+  const limitStr = Array.isArray(queryParams.limit) ? queryParams.limit[0] : queryParams.limit;
   const limit = Math.min(parseInt(limitStr ?? "100"), 200);
 
   let query = db
@@ -73,7 +76,7 @@ router.get("/citas/proximas", requireAuth, async (_req, res): Promise<void> => {
 });
 
 router.get("/citas/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id), 10);
   const [row] = await db
     .select(citaSelect)
     .from(citasTable)
@@ -107,7 +110,7 @@ router.post("/citas", requireAuth, async (req, res): Promise<void> => {
 });
 
 router.patch("/citas/:id/estado", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id), 10);
   const { estado } = req.body;
   const validos = ["programada", "confirmada", "en_atencion", "completada", "cancelada", "no_asistio"];
   if (!validos.includes(estado)) {
@@ -121,7 +124,7 @@ router.patch("/citas/:id/estado", requireAuth, async (req, res): Promise<void> =
 });
 
 router.put("/citas/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id), 10);
   const { tipoTratamientoId, fechaCita, horaInicio, horaFin, motivo, estado, canalReserva, notas } = req.body;
   const [updated] = await db.update(citasTable)
     .set({
@@ -141,7 +144,7 @@ router.put("/citas/:id", requireAuth, async (req, res): Promise<void> => {
 });
 
 router.delete("/citas/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id), 10);
   const [deleted] = await db.delete(citasTable).where(eq(citasTable.id, id)).returning();
   if (!deleted) { res.status(404).json({ error: "Cita no encontrada" }); return; }
   res.status(204).send();

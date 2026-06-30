@@ -53,6 +53,10 @@ router.post("/pacientes", requireAuth, async (req: AuthRequest, res): Promise<vo
 
   const [paciente] = await db.insert(pacientesTable).values({
     ...parsed.data,
+    fechaNacimiento:
+      parsed.data.fechaNacimiento instanceof Date
+        ? parsed.data.fechaNacimiento.toISOString().split("T")[0]
+        : parsed.data.fechaNacimiento,
     numeroHc,
     fechaApertura: today,
     odontologoId: parsed.data.odontologoId ?? req.userId,
@@ -135,7 +139,14 @@ router.patch("/pacientes/:id", requireAuth, async (req: AuthRequest, res): Promi
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [paciente] = await db.update(pacientesTable)
-    .set({ ...parsed.data, updatedAt: new Date() })
+    .set({
+      ...parsed.data,
+      fechaNacimiento:
+        parsed.data.fechaNacimiento instanceof Date
+          ? parsed.data.fechaNacimiento.toISOString().split("T")[0]
+          : parsed.data.fechaNacimiento,
+      updatedAt: new Date(),
+    })
     .where(eq(pacientesTable.id, params.data.id))
     .returning();
   if (!paciente) { res.status(404).json({ error: "Paciente no encontrado" }); return; }

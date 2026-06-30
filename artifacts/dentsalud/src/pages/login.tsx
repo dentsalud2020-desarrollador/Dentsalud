@@ -6,18 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [email, setEmail] = useState("alan@dentsalud.com");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("dentsalud_token");
-    if (token) setLocation("/dashboard");
-  }, [setLocation]);
+    if (!isAuthLoading && isAuthenticated) {
+      setLocation("/dashboard");
+    }
+  }, [isAuthLoading, isAuthenticated, setLocation]);
 
   const loginMutation = useLogin({
     mutation: {

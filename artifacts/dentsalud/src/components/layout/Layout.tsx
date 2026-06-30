@@ -17,6 +17,17 @@ export function Layout({ children }: LayoutProps) {
     }
   }, [isLoading, isAuthenticated, setLocation]);
 
+  // Fallback: si la carga se mantiene por demasiado tiempo (por ejemplo
+  // llamadas repetidas que devuelven 401), redirigimos al login para
+  // evitar que la UI se quede pegada en el estado de carga.
+  useEffect(() => {
+    if (!isLoading) return;
+    const t = setTimeout(() => {
+      setLocation("/login");
+    }, 3000);
+    return () => clearTimeout(t);
+  }, [isLoading, setLocation]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

@@ -140,7 +140,7 @@ export default function DashboardPage() {
                   Agenda de Hoy
                 </CardTitle>
                 <Link href="/citas">
-                  <span className="text-xs text-[#00AEEF] hover:underline cursor-pointer">Ver todas</span>
+                  <a className="text-xs text-[#00AEEF] hover:underline cursor-pointer">Ver todas</a>
                 </Link>
               </div>
             </CardHeader>
@@ -156,9 +156,9 @@ export default function DashboardPage() {
                   <CalendarDays className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">Sin citas para hoy</p>
                   <Link href="/citas/nueva">
-                    <span className="text-xs text-[#8DC63F] hover:underline cursor-pointer mt-1 inline-block">
+                    <a className="text-xs text-[#8DC63F] hover:underline cursor-pointer mt-1 inline-block">
                       + Agendar cita
-                    </span>
+                    </a>
                   </Link>
                 </div>
               ) : (
@@ -237,22 +237,22 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Link href="/pacientes/nuevo">
-                  <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-[#8DC63F]/50 hover:bg-[#8DC63F]/5 cursor-pointer transition-colors">
-                    <div className="p-1.5 bg-[#8DC63F]/10 rounded-lg"><UserPlus className="h-3.5 w-3.5 text-[#8DC63F]" /></div>
+                  <a className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-[#8DC63F]/50 hover:bg-[#8DC63F]/5 transition-colors">
+                    <div className="p-1.5 bg-[#8DC63F]/10 rounded-lg"><UserPlus className="h-3.5 w-3.5 text-[#8DC63F]" aria-hidden="true" /></div>
                     <p className="text-sm font-medium">Registrar Paciente</p>
-                  </div>
+                  </a>
                 </Link>
                 <Link href="/citas/nueva">
-                  <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-[#00AEEF]/50 hover:bg-[#00AEEF]/5 cursor-pointer transition-colors">
-                    <div className="p-1.5 bg-[#00AEEF]/10 rounded-lg"><CalendarDays className="h-3.5 w-3.5 text-[#00AEEF]" /></div>
+                  <a className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-[#00AEEF]/50 hover:bg-[#00AEEF]/5 transition-colors">
+                    <div className="p-1.5 bg-[#00AEEF]/10 rounded-lg"><CalendarDays className="h-3.5 w-3.5 text-[#00AEEF]" aria-hidden="true" /></div>
                     <p className="text-sm font-medium">Agendar Cita</p>
-                  </div>
+                  </a>
                 </Link>
                 <Link href="/pacientes">
-                  <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-gray-400/50 hover:bg-gray-50 cursor-pointer transition-colors">
-                    <div className="p-1.5 bg-gray-100 rounded-lg"><Users className="h-3.5 w-3.5 text-gray-600" /></div>
+                  <a className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-gray-400/50 hover:bg-gray-50 transition-colors">
+                    <div className="p-1.5 bg-gray-100 rounded-lg"><Users className="h-3.5 w-3.5 text-gray-600" aria-hidden="true" /></div>
                     <p className="text-sm font-medium">Ver Pacientes</p>
-                  </div>
+                  </a>
                 </Link>
               </CardContent>
             </Card>

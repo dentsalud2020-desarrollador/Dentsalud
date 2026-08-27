@@ -31,14 +31,14 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Navegación principal">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = location === href || location.startsWith(href + "/");
           return (
-            <Link key={href} href={href}>
-              <div
+            <Link key={href} href={href} aria-current={active ? "page" : undefined}>
+              <a
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
                   active
                     ? "bg-[#8DC63F]/20 text-[#8DC63F]"
                     : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground"
@@ -46,7 +46,7 @@ export function Sidebar() {
               >
                 <Icon className="h-4 w-4 flex-shrink-0" />
                 {label}
-              </div>
+              </a>
             </Link>
           );
         })}

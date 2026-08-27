@@ -1125,7 +1125,7 @@ components:
           type: string
         estado:
           type: string
-          enum: [sano, caries, obturado, ausente, corona, implante, endodoncia, extraccion_indicada, fractura, movilidad, sellante, otro]
+          enum: [sano, caries, restauracion, restauracion_temporal, ausente, corona_definitiva, corona_temporal, implante, tratamiento_pulpar, aparato_fijo, aparato_removible, desgaste, diastema, discromico, ectopico, clavija, extruido, intruido, edentulo_total, fractura, geminacion_fusion, giroversion, impactacion, macrodoncia, microdoncia, migracion, movilidad, protesis_fija, protesis_removible, protesis_total, remanente_radicular, semi_impactacion, supernumerario, transposicion, obturado, corona, endodoncia, extraccion_indicada, sellante, otro]
         superficies:
           type: ["string", "null"]
         observacion:
@@ -1153,7 +1153,7 @@ components:
           type: string
         estado:
           type: string
-          enum: [sano, caries, obturado, ausente, corona, implante, endodoncia, extraccion_indicada, fractura, movilidad, sellante, otro]
+          enum: [sano, caries, restauracion, restauracion_temporal, ausente, corona_definitiva, corona_temporal, implante, tratamiento_pulpar, aparato_fijo, aparato_removible, desgaste, diastema, discromico, ectopico, clavija, extruido, intruido, edentulo_total, fractura, geminacion_fusion, giroversion, impactacion, macrodoncia, microdoncia, migracion, movilidad, protesis_fija, protesis_removible, protesis_total, remanente_radicular, semi_impactacion, supernumerario, transposicion, obturado, corona, endodoncia, extraccion_indicada, sellante, otro]
         superficies:
           type: ["string", "null"]
         observacion:

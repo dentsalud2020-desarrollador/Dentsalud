@@ -13,7 +13,7 @@ export function Layout({ children }: LayoutProps) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      setLocation("/login");
+      setLocation("/login", { replace: true });
     }
   }, [isLoading, isAuthenticated, setLocation]);
 
@@ -23,7 +23,7 @@ export function Layout({ children }: LayoutProps) {
   useEffect(() => {
     if (!isLoading) return;
     const t = setTimeout(() => {
-      setLocation("/login");
+      setLocation("/login", { replace: true });
     }, 3000);
     return () => clearTimeout(t);
   }, [isLoading, setLocation]);
@@ -43,9 +43,15 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-3 focus:py-2 focus:text-primary focus:shadow-lg"
+      >
+        Saltar al contenido
+      </a>
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">
-        <header className="bg-white border-b p-4 flex items-center justify-between">
+      <main id="main-content" className="flex-1 overflow-y-auto" aria-label="Contenido principal" role="main">
+        <header role="banner" className="bg-white border-b p-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-[#0b6fa1]">DentSalud</h2>
             <div className="text-sm text-muted-foreground">Tu centro de armonía dentofacial</div>

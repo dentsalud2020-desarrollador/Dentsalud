@@ -154,7 +154,7 @@ export const GetPacienteResponse = zod.object({
   "id": zod.number(),
   "pacienteId": zod.number(),
   "numeroPieza": zod.string(),
-  "estado": zod.enum(['sano', 'caries', 'obturado', 'ausente', 'corona', 'implante', 'endodoncia', 'extraccion_indicada', 'fractura', 'movilidad', 'sellante', 'otro']),
+  "estado": zod.enum(['sano', 'caries', 'restauracion', 'restauracion_temporal', 'ausente', 'corona_definitiva', 'corona_temporal', 'implante', 'tratamiento_pulpar', 'aparato_fijo', 'aparato_removible', 'desgaste', 'diastema', 'discromico', 'ectopico', 'clavija', 'extruido', 'intruido', 'edentulo_total', 'fractura', 'geminacion_fusion', 'giroversion', 'impactacion', 'macrodoncia', 'microdoncia', 'migracion', 'movilidad', 'protesis_fija', 'protesis_removible', 'protesis_total', 'remanente_radicular', 'semi_impactacion', 'supernumerario', 'transposicion', 'obturado', 'corona', 'endodoncia', 'extraccion_indicada', 'sellante', 'otro']),
   "superficies": zod.string().nullish(),
   "observacion": zod.string().nullish(),
   "colorMarca": zod.string().nullish(),
@@ -370,7 +370,7 @@ export const GetOdontodiagramaResponseItem = zod.object({
   "id": zod.number(),
   "pacienteId": zod.number(),
   "numeroPieza": zod.string(),
-  "estado": zod.enum(['sano', 'caries', 'obturado', 'ausente', 'corona', 'implante', 'endodoncia', 'extraccion_indicada', 'fractura', 'movilidad', 'sellante', 'otro']),
+  "estado": zod.enum(['sano', 'caries', 'restauracion', 'restauracion_temporal', 'ausente', 'corona_definitiva', 'corona_temporal', 'implante', 'tratamiento_pulpar', 'aparato_fijo', 'aparato_removible', 'desgaste', 'diastema', 'discromico', 'ectopico', 'clavija', 'extruido', 'intruido', 'edentulo_total', 'fractura', 'geminacion_fusion', 'giroversion', 'impactacion', 'macrodoncia', 'microdoncia', 'migracion', 'movilidad', 'protesis_fija', 'protesis_removible', 'protesis_total', 'remanente_radicular', 'semi_impactacion', 'supernumerario', 'transposicion', 'obturado', 'corona', 'endodoncia', 'extraccion_indicada', 'sellante', 'otro']),
   "superficies": zod.string().nullish(),
   "observacion": zod.string().nullish(),
   "colorMarca": zod.string().nullish(),
@@ -389,7 +389,7 @@ export const UpdateOdontodiagramaParams = zod.object({
 export const UpdateOdontodiagramaBody = zod.object({
   "piezas": zod.array(zod.object({
   "numeroPieza": zod.string(),
-  "estado": zod.enum(['sano', 'caries', 'obturado', 'ausente', 'corona', 'implante', 'endodoncia', 'extraccion_indicada', 'fractura', 'movilidad', 'sellante', 'otro']),
+  "estado": zod.enum(['sano', 'caries', 'restauracion', 'restauracion_temporal', 'ausente', 'corona_definitiva', 'corona_temporal', 'implante', 'tratamiento_pulpar', 'aparato_fijo', 'aparato_removible', 'desgaste', 'diastema', 'discromico', 'ectopico', 'clavija', 'extruido', 'intruido', 'edentulo_total', 'fractura', 'geminacion_fusion', 'giroversion', 'impactacion', 'macrodoncia', 'microdoncia', 'migracion', 'movilidad', 'protesis_fija', 'protesis_removible', 'protesis_total', 'remanente_radicular', 'semi_impactacion', 'supernumerario', 'transposicion', 'obturado', 'corona', 'endodoncia', 'extraccion_indicada', 'sellante', 'otro']),
   "superficies": zod.string().nullish(),
   "observacion": zod.string().nullish(),
   "colorMarca": zod.string().nullish()
@@ -400,7 +400,7 @@ export const UpdateOdontodiagramaResponseItem = zod.object({
   "id": zod.number(),
   "pacienteId": zod.number(),
   "numeroPieza": zod.string(),
-  "estado": zod.enum(['sano', 'caries', 'obturado', 'ausente', 'corona', 'implante', 'endodoncia', 'extraccion_indicada', 'fractura', 'movilidad', 'sellante', 'otro']),
+  "estado": zod.enum(['sano', 'caries', 'restauracion', 'restauracion_temporal', 'ausente', 'corona_definitiva', 'corona_temporal', 'implante', 'tratamiento_pulpar', 'aparato_fijo', 'aparato_removible', 'desgaste', 'diastema', 'discromico', 'ectopico', 'clavija', 'extruido', 'intruido', 'edentulo_total', 'fractura', 'geminacion_fusion', 'giroversion', 'impactacion', 'macrodoncia', 'microdoncia', 'migracion', 'movilidad', 'protesis_fija', 'protesis_removible', 'protesis_total', 'remanente_radicular', 'semi_impactacion', 'supernumerario', 'transposicion', 'obturado', 'corona', 'endodoncia', 'extraccion_indicada', 'sellante', 'otro']),
   "superficies": zod.string().nullish(),
   "observacion": zod.string().nullish(),
   "colorMarca": zod.string().nullish(),

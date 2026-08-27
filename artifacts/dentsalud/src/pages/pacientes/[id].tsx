@@ -223,7 +223,11 @@ export default function PacienteDetailPage() {
       <Layout>
         <div className="p-6 text-center">
           <p className="text-muted-foreground">Paciente no encontrado</p>
-          <Link href="/pacientes"><button className="mt-2 text-sm text-[#8DC63F] hover:underline">Volver a pacientes</button></Link>
+          <Link href="/pacientes">
+            <a className="mt-2 inline-block text-sm text-[#8DC63F] hover:underline">
+              Volver a pacientes
+            </a>
+          </Link>
         </div>
       </Layout>
     );
@@ -240,9 +244,9 @@ export default function PacienteDetailPage() {
         {/* Header */}
         <div className="flex items-start gap-4">
           <Link href="/pacientes">
-            <button className="p-2 mt-1 rounded-lg border border-border hover:bg-muted transition-colors">
-              <ArrowLeft className="h-4 w-4" />
-            </button>
+            <a className="inline-flex p-2 mt-1 rounded-lg border border-border hover:bg-muted transition-colors" aria-label="Volver a pacientes">
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            </a>
           </Link>
           <div className="flex-1">
             <div className="flex items-center gap-3 flex-wrap">

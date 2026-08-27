@@ -35,17 +35,19 @@ export default function PacientesPage() {
             </p>
           </div>
           <Link href="/pacientes/nuevo">
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#8DC63F] text-white rounded-lg text-sm font-medium hover:bg-[#7ab535] transition-colors">
-              <UserPlus className="h-4 w-4" />
+            <a className="inline-flex items-center gap-2 px-4 py-2 bg-[#8DC63F] text-white rounded-lg text-sm font-medium hover:bg-[#7ab535] transition-colors">
+              <UserPlus className="h-4 w-4" aria-hidden="true" />
               Nuevo Paciente
-            </button>
+            </a>
           </Link>
         </div>
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <label htmlFor="paciente-search" className="sr-only">Buscar pacientes</label>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <Input
+            id="paciente-search"
             type="search"
             placeholder="Buscar por nombre, DNI o número de HC..."
             value={busqueda}
@@ -76,9 +78,9 @@ export default function PacientesPage() {
               </p>
               {!busqueda && (
                 <Link href="/pacientes/nuevo">
-                  <button className="mt-3 text-sm text-[#8DC63F] hover:underline">
+                  <a className="mt-3 inline-block text-sm text-[#8DC63F] hover:underline">
                     Registrar primer paciente
-                  </button>
+                  </a>
                 </Link>
               )}
             </div>

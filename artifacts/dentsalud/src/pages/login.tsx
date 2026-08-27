@@ -47,8 +47,8 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8DC63F]/20 to-[#00AEEF]/20 mb-4">
-              <Stethoscope className="h-8 w-8 text-[#8DC63F]" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8DC63F]/20 to-[#00AEEF]/20 mb-4" aria-hidden="true">
+              <Stethoscope className="h-8 w-8 text-[#8DC63F]" aria-hidden="true" focusable="false" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
               <span className="text-[#8DC63F]">Dent</span><span className="text-[#00AEEF]">Salud</span>
@@ -92,6 +92,8 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
+                  aria-pressed={showPassword}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import React from "react";
 import { useParams, Link } from "wouter";
 import { Layout } from "@/components/layout/Layout";
 import {
@@ -24,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Odontodiagrama } from "@/components/odontodiagrama/Odontodiagrama";
+import { ImagenesUpload } from "@/components/pacientes/ImagenesUpload";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -197,6 +199,41 @@ export default function PacienteDetailPage() {
     query: { queryKey: getGetPagosQueryKey(pacienteId), enabled: !!pacienteId },
   });
   const [pagoForm, setPagoForm] = useState({ monto: "", metodoPago: "efectivo", notas: "" });
+
+  // ─── Imágenes ─────────────────────────────────────────────────────────────
+  const [imagenes, setImagenes] = useState<Array<{
+    id: number;
+    pacienteId: number;
+    tipo: string;
+    descripcion?: string;
+    rutaArchivo: string;
+    nombreArchivo: string;
+    createdAt: string;
+  }>>([]);
+  const [imagenesLoading, setImagenesLoading] = useState(false);
+
+  // Cargar imágenes cuando se carga el paciente
+  React.useEffect(() => {
+    if (!pacienteId) return;
+    const loadImagenes = async () => {
+      setImagenesLoading(true);
+      try {
+        const token = localStorage.getItem("dentsalud_token");
+        const response = await fetch(`/api/pacientes/${pacienteId}/imagenes`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setImagenes(data);
+        }
+      } catch (error) {
+        console.error("Error loading imagenes:", error);
+      } finally {
+        setImagenesLoading(false);
+      }
+    };
+    loadImagenes();
+  }, [pacienteId]);
   const createPagoMutation = useCreatePago({
     mutation: {
       onSuccess: () => {
@@ -270,6 +307,7 @@ export default function PacienteDetailPage() {
               { value: "antecedentes", label: "Antecedentes" },
               { value: "examen", label: "Examen Clínico" },
               { value: "odontograma", label: "Odontodiagrama" },
+              { value: "imagenes", label: "Imágenes" },
               { value: "plan", label: "Plan de Tratamientos" },
               { value: "sesiones", label: "Sesiones" },
               { value: "pagos", label: "Pagos" },
@@ -558,6 +596,21 @@ export default function PacienteDetailPage() {
                 <Odontodiagrama pacienteId={pacienteId} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* ── TAB: Imágenes ── */}
+          <TabsContent value="imagenes" className="mt-4">
+            {imagenesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+              </div>
+            ) : (
+              <ImagenesUpload
+                pacienteId={pacienteId}
+                imagenes={imagenes}
+                onImagenesChange={setImagenes}
+              />
+            )}
           </TabsContent>
 
           {/* ── TAB: Plan de Tratamientos ── */}

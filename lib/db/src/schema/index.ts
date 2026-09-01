@@ -10,3 +10,4 @@ export * from "./plan_tratamientos";
 export * from "./sesiones";
 export * from "./pagos";
 export * from "./citas";
+export * from "./imagenes_pacientes";

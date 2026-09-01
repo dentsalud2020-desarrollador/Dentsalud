@@ -9,6 +9,7 @@ import sesionesRouter from "./sesiones";
 import pagosRouter from "./pagos";
 import dashboardRouter from "./dashboard";
 import citasRouter from "./citas";
+import imagenesRouter from "./imagenes";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(sesionesRouter);
 router.use(pagosRouter);
 router.use(dashboardRouter);
 router.use(citasRouter);
+router.use(imagenesRouter);
 
 export default router;

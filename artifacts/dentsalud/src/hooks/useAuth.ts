@@ -21,14 +21,12 @@ export function useAuth() {
       retry: false,
       staleTime: 5 * 60 * 1000,
       enabled: tokenPresent,
-      onError: (error: unknown) => {
-        const status = (error as { status?: number })?.status;
-        if (status === 401 || status === 403) {
-          logout();
-        }
-      },
     },
   });
+
+  if (me === undefined && tokenPresent && !isLoading) {
+    logout();
+  }
 
   return {
     user: me ?? null,

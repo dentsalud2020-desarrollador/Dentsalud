@@ -1,5 +1,6 @@
 import { Router, type Request } from "express";
 import multer from "multer";
+import path from "path";
 import { v2 as cloudinary } from "cloudinary";
 import { eq, and } from "drizzle-orm";
 import { db, imagenesPacientesTable, pacientesTable } from "@workspace/db";
@@ -22,6 +23,15 @@ if (cloudName && apiKey && apiSecret) {
 }
 
 const storage = multer.memoryStorage();
+
+function slugify(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "imagen";
+}
 
 const fileFilter = (
   req: Request,
@@ -76,35 +86,41 @@ router.post(
         return;
       }
 
-      let rutaArchivo = "";
+      if (!cloudName || !apiKey || !apiSecret) {
+        res.status(503).json({ error: "Cloudinary no está configurado en el servidor" });
+        return;
+      }
+
+      const extension = path.extname(uploadedFile.originalname).toLowerCase();
+      const nombrePaciente = slugify(`${paciente.nombres}-${paciente.apellidos}`);
+      const nombreTipo = slugify(tipo);
+      const nombreBase = `${nombreTipo}-${nombrePaciente}-${Date.now()}`;
+      const nombreArchivo = `${nombreBase}${extension}`;
       let publicId: string | null = null;
 
-      if (cloudName && apiKey && apiSecret) {
-        const uploadResult = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            {
-              folder: process.env.CLOUDINARY_FOLDER || "dental-care/pacientes",
-              resource_type: "image",
-            },
-            (error, result) => {
-              if (error || !result) {
-                reject(error ?? new Error("No se pudo subir la imagen a Cloudinary"));
-                return;
-              }
-              resolve({
-                secure_url: result.secure_url,
-                public_id: result.public_id,
-              });
-            },
-          );
-          stream.end(uploadedFile.buffer);
-        });
+      const uploadResult = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: process.env.CLOUDINARY_FOLDER || "dental-care/pacientes",
+            public_id: nombreBase,
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error || !result) {
+              reject(error ?? new Error("No se pudo subir la imagen a Cloudinary"));
+              return;
+            }
+            resolve({
+              secure_url: result.secure_url,
+              public_id: result.public_id,
+            });
+          },
+        );
+        stream.end(uploadedFile.buffer);
+      });
 
-        rutaArchivo = uploadResult.secure_url;
-        publicId = uploadResult.public_id;
-      } else {
-        rutaArchivo = `/uploads/pacientes/${uploadedFile.originalname}`;
-      }
+      const rutaArchivo = uploadResult.secure_url;
+      publicId = uploadResult.public_id;
 
       const [imagen] = await db
         .insert(imagenesPacientesTable)
@@ -113,12 +129,12 @@ router.post(
           tipo,
           descripcion: descripcion || null,
           rutaArchivo,
-          nombreArchivo: uploadedFile.originalname,
+          nombreArchivo,
         })
         .returning();
 
       logger.info(
-        { pacienteId, imagenId: imagen.id, filename: uploadedFile.originalname, publicId },
+        { pacienteId, imagenId: imagen.id, filename: nombreArchivo, publicId },
         "Imagen subida exitosamente"
       );
       res.status(201).json(imagen);

@@ -267,7 +267,7 @@ export function ImagenesUpload({
                 </Button>
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                Máximo 10MB. Formatos: JPEG, PNG, WebP, GIF
+                Máximo 10MB. 
               </p>
             </div>
           </div>

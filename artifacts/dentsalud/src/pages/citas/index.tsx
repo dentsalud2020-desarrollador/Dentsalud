@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Layout } from "@/components/layout/Layout";
 import {
-  useGetCitas, useGetCitasHoy, useUpdateCitaEstado,
+  useGetCitas, useGetCitasHoy, useUpdateCitaEstado, useUpdateCita, useDeleteCita,
+  useListTiposTratamiento, getListTiposTratamientoQueryKey,
   getGetCitasHoyQueryKey, getGetCitasQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Calendar, Plus, Clock, CheckCircle, XCircle, UserRound, ChevronRight, Loader2 } from "lucide-react";
+import { Calendar, Plus, Clock, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,9 +38,11 @@ function EstadoBadge({ estado }: { estado: string }) {
   );
 }
 
-function CitaCard({ cita, onChangeEstado }: {
+function CitaCard({ cita, onChangeEstado, onEdit, onDelete }: {
   cita: any;
   onChangeEstado: (id: number, estado: EstadoCita) => void;
+  onEdit: (cita: any) => void;
+  onDelete: (id: number) => void;
 }) {
   const estado = cita.estado as EstadoCita;
   return (
@@ -59,6 +62,18 @@ function CitaCard({ cita, onChangeEstado }: {
         )}
       </div>
       <div className="flex-shrink-0 flex flex-col gap-1">
+        <button
+          onClick={() => onEdit(cita)}
+          className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors flex items-center gap-1"
+        >
+          <Pencil className="h-3 w-3" /> Editar
+        </button>
+        <button
+          onClick={() => onDelete(cita.id)}
+          className="text-xs px-2 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors flex items-center gap-1"
+        >
+          <Trash2 className="h-3 w-3" /> Eliminar
+        </button>
         {estado === "programada" && (
           <>
             <button
@@ -96,8 +111,10 @@ function CitaCard({ cita, onChangeEstado }: {
 }
 
 export default function CitasPage() {
-  const [tab, setTab] = useState<"hoy" | "proximas" | "todas">("hoy");
+  const [tab, setTab] = useState<"hoy" | "fecha" | "todas">("hoy");
   const [filterFecha, setFilterFecha] = useState("");
+  const [editingCita, setEditingCita] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({ fechaCita: "", horaInicio: "", horaFin: "", motivo: "", notas: "", estado: "programada", tipoTratamientoId: "" });
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -106,10 +123,14 @@ export default function CitasPage() {
   });
   const citasHoy = Array.isArray(citasHoyRaw) ? citasHoyRaw : [];
 
-  const { data: todasCitas = [], isLoading: loadingTodas } = useGetCitas(
-    { fecha: filterFecha || undefined },
-    { query: { queryKey: getGetCitasQueryKey({ fecha: filterFecha || undefined }), staleTime: 10000 } }
+  const { data: citasFiltradas = [], isLoading: loadingFiltradas } = useGetCitas(
+    { fecha: tab === "fecha" && filterFecha ? filterFecha : undefined, limit: tab === "todas" ? 200 : undefined },
+    { query: { queryKey: getGetCitasQueryKey({ fecha: tab === "fecha" && filterFecha ? filterFecha : undefined, limit: tab === "todas" ? 200 : undefined }), staleTime: 10000 } }
   );
+
+  const { data: tipos = [] } = useListTiposTratamiento({
+    query: { queryKey: getListTiposTratamientoQueryKey(), staleTime: 60000 },
+  });
 
   const updateEstadoMutation = useUpdateCitaEstado({
     mutation: {
@@ -122,8 +143,52 @@ export default function CitasPage() {
     },
   });
 
+  const updateCitaMutation = useUpdateCita({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetCitasHoyQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetCitasQueryKey() });
+        setEditingCita(null);
+        toast({ title: "Cita actualizada" });
+      },
+      onError: () => toast({ title: "Error al actualizar la cita", variant: "destructive" }),
+    },
+  });
+
+  const deleteCitaMutation = useDeleteCita({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetCitasHoyQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetCitasQueryKey() });
+        toast({ title: "Cita eliminada" });
+      },
+      onError: () => toast({ title: "Error al eliminar la cita", variant: "destructive" }),
+    },
+  });
+
   const handleChangeEstado = (id: number, estado: EstadoCita) => {
     updateEstadoMutation.mutate({ id, data: { estado } });
+  };
+
+  const handleEdit = (cita: any) => {
+    setEditingCita(cita);
+    setEditForm({ fechaCita: cita.fechaCita, horaInicio: formatHora(cita.horaInicio), horaFin: formatHora(cita.horaFin), motivo: cita.motivo ?? "", notas: cita.notas ?? "", estado: cita.estado, tipoTratamientoId: cita.tipoTratamientoId?.toString() ?? "" });
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm("¿Deseas eliminar esta cita? Esta acción no se puede deshacer.")) deleteCitaMutation.mutate({ id });
+  };
+
+  const handleSaveEdit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!editingCita || editForm.horaFin <= editForm.horaInicio) {
+      toast({ title: "La hora de fin debe ser mayor que la hora de inicio", variant: "destructive" });
+      return;
+    }
+    updateCitaMutation.mutate({
+      id: editingCita.id,
+      data: { pacienteId: editingCita.pacienteId, odontologoId: editingCita.odontologoId, tipoTratamientoId: editForm.tipoTratamientoId ? Number(editForm.tipoTratamientoId) : null, fechaCita: editForm.fechaCita, horaInicio: editForm.horaInicio, horaFin: editForm.horaFin, motivo: editForm.motivo || null, estado: editForm.estado as any, canalReserva: editingCita.canalReserva, notas: editForm.notas || null },
+    });
   };
 
   const today = new Date().toISOString().split("T")[0];
@@ -167,7 +232,7 @@ export default function CitasPage() {
         {/* Tabs */}
         <div className="border-b border-border">
           <div className="flex gap-6">
-            {(["hoy", "todas"] as const).map(t => (
+            {(["hoy", "fecha", "todas"] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -178,7 +243,7 @@ export default function CitasPage() {
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 )}
               >
-                {t === "hoy" ? "Agenda de Hoy" : "Buscar por Fecha"}
+                {t === "hoy" ? "Agenda de Hoy" : t === "fecha" ? "Buscar por Fecha" : "Todas las Citas"}
               </button>
             ))}
           </div>
@@ -211,7 +276,7 @@ export default function CitasPage() {
               ) : (
                 <div className="space-y-2">
                   {citasHoy.map(cita => (
-                    <CitaCard key={cita.id} cita={cita} onChangeEstado={handleChangeEstado} />
+                    <CitaCard key={cita.id} cita={cita} onChangeEstado={handleChangeEstado} onEdit={handleEdit} onDelete={handleDelete} />
                   ))}
                 </div>
               )}
@@ -219,8 +284,8 @@ export default function CitasPage() {
           </Card>
         )}
 
-        {/* Todas tab — filtro por fecha */}
-        {tab === "todas" && (
+        {/* Filtro por fecha */}
+        {tab === "fecha" && (
           <Card className="shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -238,24 +303,51 @@ export default function CitasPage() {
                 <p className="text-sm text-muted-foreground text-center py-8">
                   Selecciona una fecha para ver las citas
                 </p>
-              ) : loadingTodas ? (
+              ) : loadingFiltradas ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : todasCitas.length === 0 ? (
+              ) : citasFiltradas.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Clock className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">Sin citas para esta fecha</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {todasCitas.map(cita => (
-                    <CitaCard key={cita.id} cita={cita} onChangeEstado={handleChangeEstado} />
+                  {citasFiltradas.map(cita => (
+                    <CitaCard key={cita.id} cita={cita} onChangeEstado={handleChangeEstado} onEdit={handleEdit} onDelete={handleDelete} />
                   ))}
                 </div>
               )}
             </CardContent>
           </Card>
+        )}
+
+        {tab === "todas" && (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2"><CardTitle className="text-base font-semibold flex items-center gap-2"><Calendar className="h-4 w-4 text-[#8DC63F]" /> Todas las citas</CardTitle></CardHeader>
+            <CardContent>
+              {loadingFiltradas ? <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : citasFiltradas.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No hay citas registradas</p> : <div className="space-y-2">{citasFiltradas.map(cita => <CitaCard key={cita.id} cita={cita} onChangeEstado={handleChangeEstado} onEdit={handleEdit} onDelete={handleDelete} />)}</div>}
+            </CardContent>
+          </Card>
+        )}
+
+        {editingCita && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
+              <CardHeader className="flex flex-row items-center justify-between"><CardTitle className="text-lg">Editar cita</CardTitle><Button variant="ghost" size="icon" onClick={() => setEditingCita(null)} aria-label="Cerrar"><X className="h-4 w-4" /></Button></CardHeader>
+              <form onSubmit={handleSaveEdit}><CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Paciente: {editingCita.pacienteNombres} {editingCita.pacienteApellidos}</p>
+                <div><label className="text-sm font-medium">Fecha</label><input type="date" required value={editForm.fechaCita} onChange={e => setEditForm(f => ({ ...f, fechaCita: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background" /></div>
+                <div className="grid grid-cols-2 gap-3"><div><label className="text-sm font-medium">Hora inicio</label><input type="time" required value={editForm.horaInicio} onChange={e => setEditForm(f => ({ ...f, horaInicio: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background" /></div><div><label className="text-sm font-medium">Hora fin</label><input type="time" required value={editForm.horaFin} onChange={e => setEditForm(f => ({ ...f, horaFin: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background" /></div></div>
+                <div><label className="text-sm font-medium">Tipo de tratamiento</label><select value={editForm.tipoTratamientoId} onChange={e => setEditForm(f => ({ ...f, tipoTratamientoId: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background"><option value="">Sin especificar</option>{tipos.map(t => <option key={t.id} value={t.id}>{t.nombre}{t.subtipo ? ` — ${t.subtipo}` : ""}</option>)}</select></div>
+                <div><label className="text-sm font-medium">Estado</label><select value={editForm.estado} onChange={e => setEditForm(f => ({ ...f, estado: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background">{Object.entries(ESTADO_CONFIG).map(([value, config]) => <option key={value} value={value}>{config.label}</option>)}</select></div>
+                <div><label className="text-sm font-medium">Motivo</label><input value={editForm.motivo} onChange={e => setEditForm(f => ({ ...f, motivo: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background" /></div>
+                <div><label className="text-sm font-medium">Notas</label><textarea rows={3} value={editForm.notas} onChange={e => setEditForm(f => ({ ...f, notas: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background resize-none" /></div>
+                <div className="flex justify-end gap-2 pt-2"><Button type="button" variant="outline" onClick={() => setEditingCita(null)}>Cancelar</Button><Button type="submit" disabled={updateCitaMutation.isPending} className="bg-[#8DC63F] hover:bg-[#7ab535] text-white">{updateCitaMutation.isPending ? "Guardando..." : "Guardar cambios"}</Button></div>
+              </CardContent></form>
+            </Card>
+          </div>
         )}
       </div>
     </Layout>

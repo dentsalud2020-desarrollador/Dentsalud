@@ -27,6 +27,7 @@ const citaSelect = {
 router.get("/citas", requireAuth, async (req, res): Promise<void> => {
   const queryParams = req.query as Record<string, string | string[] | undefined>;
   const fecha = Array.isArray(queryParams.fecha) ? queryParams.fecha[0] : queryParams.fecha;
+  const desde = Array.isArray(queryParams.desde) ? queryParams.desde[0] : queryParams.desde;
   const estado = Array.isArray(queryParams.estado) ? queryParams.estado[0] : queryParams.estado;
   const limitStr = Array.isArray(queryParams.limit) ? queryParams.limit[0] : queryParams.limit;
   const limit = Math.min(parseInt(limitStr ?? "100"), 200);
@@ -40,6 +41,7 @@ router.get("/citas", requireAuth, async (req, res): Promise<void> => {
 
   const conditions = [];
   if (fecha) conditions.push(eq(citasTable.fechaCita, fecha));
+  if (desde) conditions.push(gte(citasTable.fechaCita, desde));
   if (estado) conditions.push(eq(citasTable.estado, estado));
   if (conditions.length) query = query.where(and(...conditions));
 

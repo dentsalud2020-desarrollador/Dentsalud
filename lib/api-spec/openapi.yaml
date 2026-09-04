@@ -639,6 +639,10 @@ paths:
         - name: fecha
           in: query
           schema: { type: string, format: date }
+        - name: desde
+          in: query
+          description: Return appointments on or after this date
+          schema: { type: string, format: date }
         - name: estado
           in: query
           schema: { type: string }

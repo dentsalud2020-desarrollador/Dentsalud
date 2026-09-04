@@ -687,6 +687,7 @@ limite?: number;
 
 export type GetCitasParams = {
 fecha?: string;
+desde?: string;
 estado?: string;
 limit?: number;
 };

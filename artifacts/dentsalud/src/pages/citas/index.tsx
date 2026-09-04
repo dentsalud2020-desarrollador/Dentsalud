@@ -29,6 +29,13 @@ function formatHora(h: string) {
   return h?.slice(0, 5) ?? "";
 }
 
+function formatFecha(fecha: string) {
+  if (!fecha) return "Sin fecha";
+  return new Date(`${fecha}T00:00:00`).toLocaleDateString("es-PE", {
+    weekday: "long", day: "2-digit", month: "long", year: "numeric",
+  });
+}
+
 function EstadoBadge({ estado }: { estado: string }) {
   const cfg = ESTADO_CONFIG[estado as EstadoCita] ?? { label: estado, color: "text-gray-700", bg: "bg-gray-100" };
   return (
@@ -52,14 +59,18 @@ function CitaCard({ cita, onChangeEstado, onEdit, onDelete }: {
         <p className="text-xs text-muted-foreground">{formatHora(cita.horaFin)}</p>
       </div>
       <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-muted-foreground capitalize mb-1">{formatFecha(cita.fechaCita)}</p>
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-medium">{cita.pacienteNombres} {cita.pacienteApellidos}</p>
           <EstadoBadge estado={estado} />
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5 truncate">{cita.motivo ?? "Sin motivo"}</p>
+        {cita.pacienteDni && <p className="text-xs text-muted-foreground mt-0.5">DNI: {cita.pacienteDni}</p>}
         {cita.tipoTratamientoNombre && (
           <p className="text-xs text-[#00AEEF] mt-0.5">{cita.tipoTratamientoNombre}</p>
         )}
+        <p className="text-xs text-muted-foreground mt-0.5">Motivo: {cita.motivo ?? "Sin motivo"}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Reserva: {cita.canalReserva ?? "Sin especificar"}</p>
+        {cita.notas && <p className="text-xs text-muted-foreground mt-0.5 break-words">Notas: {cita.notas}</p>}
       </div>
       <div className="flex-shrink-0 flex flex-col gap-1">
         <button
@@ -117,6 +128,7 @@ export default function CitasPage() {
   const [editForm, setEditForm] = useState({ fechaCita: "", horaInicio: "", horaFin: "", motivo: "", notas: "", estado: "programada", tipoTratamientoId: "" });
   const { toast } = useToast();
   const qc = useQueryClient();
+  const today = new Date().toISOString().split("T")[0];
 
   const { data: citasHoyRaw, isLoading: loadingHoy } = useGetCitasHoy({
     query: { queryKey: getGetCitasHoyQueryKey(), staleTime: 10000 },
@@ -124,8 +136,8 @@ export default function CitasPage() {
   const citasHoy = Array.isArray(citasHoyRaw) ? citasHoyRaw : [];
 
   const { data: citasFiltradas = [], isLoading: loadingFiltradas } = useGetCitas(
-    { fecha: tab === "fecha" && filterFecha ? filterFecha : undefined, limit: tab === "todas" ? 200 : undefined },
-    { query: { queryKey: getGetCitasQueryKey({ fecha: tab === "fecha" && filterFecha ? filterFecha : undefined, limit: tab === "todas" ? 200 : undefined }), staleTime: 10000 } }
+    { fecha: tab === "fecha" && filterFecha ? filterFecha : undefined, desde: tab === "todas" ? today : undefined, limit: tab === "todas" ? 200 : undefined },
+    { query: { queryKey: getGetCitasQueryKey({ fecha: tab === "fecha" && filterFecha ? filterFecha : undefined, desde: tab === "todas" ? today : undefined, limit: tab === "todas" ? 200 : undefined }), staleTime: 10000 } }
   );
 
   const { data: tipos = [] } = useListTiposTratamiento({
@@ -191,7 +203,6 @@ export default function CitasPage() {
     });
   };
 
-  const today = new Date().toISOString().split("T")[0];
   const hoy = new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" });
 
   const pendientesHoy = citasHoy.filter(c => c.estado === "programada" || c.estado === "en_atencion");

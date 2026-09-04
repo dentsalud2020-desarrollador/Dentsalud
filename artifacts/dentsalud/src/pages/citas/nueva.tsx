@@ -23,6 +23,70 @@ const CANALES = [
   { value: "web", label: "Web" },
 ];
 
+const HORAS = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
+const MINUTOS = ["00", "15", "30", "45"];
+const PERIODOS = ["AM", "PM"] as const;
+
+type Periodo = (typeof PERIODOS)[number];
+
+function hora12A24(hora: string, minuto: string, periodo: Periodo) {
+  let hora24 = Number(hora) % 12;
+  if (periodo === "PM") hora24 += 12;
+  return `${String(hora24).padStart(2, "0")}:${minuto}`;
+}
+
+function SelectorHora({
+  label,
+  hora,
+  minuto,
+  periodo,
+  onChange,
+}: {
+  label: string;
+  hora: string;
+  minuto: string;
+  periodo: Periodo;
+  onChange: (field: "hora" | "minuto" | "periodo", value: string) => void;
+}) {
+  return (
+    <div>
+      <Label className="text-sm font-medium flex items-center gap-1">
+        {label} <span className="text-destructive">*</span>
+      </Label>
+      <div className="mt-1 grid grid-cols-[1fr_1fr_1.1fr] gap-2">
+        <select
+          required
+          aria-label={`${label}: hora`}
+          value={hora}
+          onChange={e => onChange("hora", e.target.value)}
+          className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+        >
+          {HORAS.map(value => <option key={value} value={value}>{value}</option>)}
+        </select>
+        <select
+          required
+          aria-label={`${label}: minutos`}
+          value={minuto}
+          onChange={e => onChange("minuto", e.target.value)}
+          className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+        >
+          {MINUTOS.map(value => <option key={value} value={value}>{value}</option>)}
+        </select>
+        <select
+          required
+          aria-label={`${label}: periodo`}
+          value={periodo}
+          onChange={e => onChange("periodo", e.target.value)}
+          className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+        >
+          {PERIODOS.map(value => <option key={value} value={value}>{value}</option>)}
+        </select>
+      </div>
+      <p className="text-xs text-muted-foreground mt-1">Hora · minutos · AM/PM</p>
+    </div>
+  );
+}
+
 export default function NuevaCitaPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -35,8 +99,12 @@ export default function NuevaCitaPage() {
     pacienteId: "",
     tipoTratamientoId: "",
     fechaCita: today,
-    horaInicio: "09:00",
-    horaFin: "09:30",
+    horaInicioHora: "09",
+    horaInicioMinuto: "00",
+    horaInicioPeriodo: "AM" as Periodo,
+    horaFinHora: "09",
+    horaFinMinuto: "30",
+    horaFinPeriodo: "AM" as Periodo,
     motivo: "",
     canalReserva: "presencial",
     notas: "",
@@ -68,7 +136,9 @@ export default function NuevaCitaPage() {
     if (!form.pacienteId) {
       toast({ title: "Selecciona un paciente", variant: "destructive" }); return;
     }
-    if (form.horaFin <= form.horaInicio) {
+    const horaInicio = hora12A24(form.horaInicioHora, form.horaInicioMinuto, form.horaInicioPeriodo);
+    const horaFin = hora12A24(form.horaFinHora, form.horaFinMinuto, form.horaFinPeriodo);
+    if (horaFin <= horaInicio) {
       toast({ title: "La hora de fin debe ser mayor a la hora de inicio", variant: "destructive" }); return;
     }
     createMutation.mutate({
@@ -77,8 +147,8 @@ export default function NuevaCitaPage() {
         odontologoId: user?.id ?? 1,
         tipoTratamientoId: form.tipoTratamientoId ? Number(form.tipoTratamientoId) : null,
         fechaCita: form.fechaCita,
-        horaInicio: form.horaInicio,
-        horaFin: form.horaFin,
+        horaInicio,
+        horaFin,
         motivo: form.motivo || null,
         estado: "programada",
         canalReserva: form.canalReserva as any,
@@ -162,28 +232,20 @@ export default function NuevaCitaPage() {
 
               {/* Horario */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" /> Hora inicio <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    type="time"
-                    required
-                    value={form.horaInicio}
-                    onChange={e => set("horaInicio", e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Hora fin <span className="text-destructive">*</span></Label>
-                  <Input
-                    type="time"
-                    required
-                    value={form.horaFin}
-                    onChange={e => set("horaFin", e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
+                <SelectorHora
+                  label="Hora inicio"
+                  hora={form.horaInicioHora}
+                  minuto={form.horaInicioMinuto}
+                  periodo={form.horaInicioPeriodo}
+                  onChange={(field, value) => setForm(current => ({ ...current, [`horaInicio${field[0].toUpperCase()}${field.slice(1)}`]: value }))}
+                />
+                <SelectorHora
+                  label="Hora fin"
+                  hora={form.horaFinHora}
+                  minuto={form.horaFinMinuto}
+                  periodo={form.horaFinPeriodo}
+                  onChange={(field, value) => setForm(current => ({ ...current, [`horaFin${field[0].toUpperCase()}${field.slice(1)}`]: value }))}
+                />
               </div>
 
               {/* Motivo */}

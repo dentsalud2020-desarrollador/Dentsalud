@@ -1,6 +1,6 @@
 # 🎉 RESUMEN EJECUTIVO - Implementación Completada
 
-## ¿Qué se ha hecho?
+## ¿Qué se ha hecho? nada
 
 Se ha implementado un **sistema completo y funcional** para que los pacientes puedan subir y gestionar imágenes dentales (panorámicas, tomografías, radiografías, fotos, etc.).
 

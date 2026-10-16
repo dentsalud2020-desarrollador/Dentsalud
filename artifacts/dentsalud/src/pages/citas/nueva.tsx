@@ -161,7 +161,7 @@ export default function NuevaCitaPage() {
 
   return (
     <Layout>
-      <div className="p-6 max-w-2xl mx-auto space-y-4">
+      <div className="sm:p-2 max-w-2xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center gap-3">
           <Link href="/citas">

@@ -25,9 +25,9 @@ export default function PacientesPage() {
 
   return (
     <Layout>
-      <div className="p-6 max-w-6xl mx-auto space-y-5">
+      <div className="sm:p-2 max-w-6xl mx-auto space-y-5">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold">Pacientes</h1>
             <p className="text-sm text-muted-foreground mt-0.5">

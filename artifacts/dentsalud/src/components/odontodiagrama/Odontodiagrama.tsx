@@ -453,20 +453,22 @@ export function Odontodiagrama({ pacienteId }: OdontodiagramaProps) {
       </div>
 
       {/* Diagrama */}
-      <div className="border border-border rounded-xl p-5 bg-muted/20 space-y-4">
+      <div className="border border-border rounded-xl p-3 sm:p-5 bg-muted/20 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Info className="h-4 w-4 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Seleccione un diente para registrar el hallazgo; en caries puede marcar cada superficie afectada en rojo.</span>
         </div>
+        <p className="text-xs text-muted-foreground text-center sm:hidden">Desliza hacia los lados para ver todos los dientes</p>
 
-        <div className="space-y-6">
+        <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+        <div className="space-y-6 min-w-[580px]">
           <div>
             <h4 className="text-xs font-semibold text-center text-muted-foreground uppercase tracking-wider mb-3">Dentición Adulta</h4>
             <div className="space-y-3">
               <div>
                 <p className="text-xs text-center text-muted-foreground mb-1">Superior Derecho / Superior Izquierdo</p>
                 <div className="flex justify-center">
-                  <div className="flex gap-0.5 flex-wrap justify-center">
+                  <div className="flex gap-0.5 justify-center">
                     {DIENTES_ADULTOS_SUPERIOR.map(n => (
                       <DienteSVG key={n} numero={n} estado={getEstado(n)} superficies={getSuperficies(n)} onClick={() => setPopover(n)} />
                     ))}
@@ -476,7 +478,7 @@ export function Odontodiagrama({ pacienteId }: OdontodiagramaProps) {
               <div className="border-t border-dashed border-border" />
               <div>
                 <div className="flex justify-center">
-                  <div className="flex gap-0.5 flex-wrap justify-center">
+                  <div className="flex gap-0.5 justify-center">
                     {DIENTES_ADULTOS_INFERIOR.map(n => (
                       <div key={n} className="flex flex-col-reverse items-center gap-0.5">
                         <span className="text-[9px] text-muted-foreground font-medium">{n}</span>
@@ -528,7 +530,7 @@ export function Odontodiagrama({ pacienteId }: OdontodiagramaProps) {
             <div className="space-y-2">
               <div>
                 <p className="text-xs text-center text-muted-foreground mb-1">Superior</p>
-                <div className="flex justify-center gap-0.5 flex-wrap">
+                <div className="flex justify-center gap-0.5">
                   {DIENTES_DECIDUOS_SUPERIOR.map(n => (
                     <DienteSVG key={n} numero={n} estado={getEstado(n)} superficies={getSuperficies(n)} onClick={() => setPopover(n)} />
                   ))}
@@ -536,7 +538,7 @@ export function Odontodiagrama({ pacienteId }: OdontodiagramaProps) {
               </div>
               <div className="border-t border-dashed border-border" />
               <div>
-                <div className="flex justify-center gap-0.5 flex-wrap">
+                <div className="flex justify-center gap-0.5">
                   {DIENTES_DECIDUOS_INFERIOR.map(n => (
                     <div key={n} className="flex flex-col-reverse items-center gap-0.5">
                       <span className="text-[9px] text-muted-foreground font-medium">{n}</span>
@@ -564,6 +566,7 @@ export function Odontodiagrama({ pacienteId }: OdontodiagramaProps) {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
 

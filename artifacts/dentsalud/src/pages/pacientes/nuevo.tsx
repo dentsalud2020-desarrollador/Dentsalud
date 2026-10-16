@@ -77,7 +77,7 @@ export default function NuevoPacientePage() {
 
   return (
     <Layout>
-      <div className="p-6 max-w-3xl mx-auto space-y-5">
+      <div className="sm:p-2 max-w-3xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Link href="/pacientes">

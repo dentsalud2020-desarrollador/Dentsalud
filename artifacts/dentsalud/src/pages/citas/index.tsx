@@ -239,9 +239,9 @@ export default function CitasPage() {
 
   return (
     <Layout>
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="sm:p-2 max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold">Agenda de Citas</h1>
             <p className="text-sm text-muted-foreground mt-0.5 capitalize">{hoy}</p>
@@ -270,8 +270,8 @@ export default function CitasPage() {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-border">
-          <div className="flex gap-6">
+        <div className="border-b border-border overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+          <div className="flex gap-6 whitespace-nowrap">
             {(["hoy", "fecha", "todas", "pasadas"] as const).map(t => (
               <button
                 key={t}
@@ -328,7 +328,7 @@ export default function CitasPage() {
         {tab === "fecha" && (
           <Card className="shadow-sm">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
                 <CardTitle className="text-base font-semibold">Buscar citas por fecha</CardTitle>
                 <input
                   type="date"

@@ -60,16 +60,16 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div className="sm:p-2 max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
             <p className="text-sm text-muted-foreground mt-0.5 capitalize">
               {new Date().toLocaleDateString("es-PE", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Link href="/citas/nueva">
               <button className="flex items-center gap-2 px-4 py-2 bg-[#00AEEF] text-white rounded-lg text-sm font-medium hover:bg-[#0099d4] transition-colors">
                 <CalendarDays className="h-4 w-4" />

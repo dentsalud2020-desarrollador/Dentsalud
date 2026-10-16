@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  LayoutDashboard, Users, LogOut, Stethoscope, CalendarDays, ClipboardList,
+  LayoutDashboard, Users, LogOut, Stethoscope, CalendarDays, ClipboardList, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,12 +12,26 @@ const navItems = [
   { href: "/procedimientos", label: "Procedimientos", icon: ClipboardList },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  abierto?: boolean;
+  onCerrar?: () => void;
+}
+
+export function Sidebar({ abierto = false, onCerrar }: SidebarProps) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
 
   return (
-    <aside className="w-64 flex-shrink-0 flex flex-col h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
+    <>
+    {/* Fondo oscuro detrás del menú en celular */}
+    {abierto && (
+      <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={onCerrar} aria-hidden="true" />
+    )}
+    <aside className={cn(
+      "w-64 flex-shrink-0 flex flex-col h-dvh bg-sidebar text-sidebar-foreground border-r border-sidebar-border",
+      "fixed inset-y-0 left-0 z-50 transition-transform duration-200 md:static md:translate-x-0",
+      abierto ? "translate-x-0" : "-translate-x-full",
+    )}>
       {/* Logo */}
       <div className="px-6 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
@@ -28,6 +42,14 @@ export function Sidebar() {
             </div>
             <div className="text-xs text-sidebar-foreground/60 leading-tight">Tu Centro de Armonía Dentofacial</div>
           </div>
+          <button
+            type="button"
+            onClick={onCerrar}
+            className="md:hidden ml-auto p-1.5 rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent"
+            aria-label="Cerrar menú"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
@@ -68,5 +90,6 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

@@ -141,7 +141,7 @@ export default function ProcedimientosPage() {
 
   return (
     <Layout>
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="sm:p-2 max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>

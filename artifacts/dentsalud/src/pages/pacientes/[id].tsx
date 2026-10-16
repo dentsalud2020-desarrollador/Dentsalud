@@ -278,17 +278,17 @@ export default function PacienteDetailPage() {
 
   return (
     <Layout>
-      <div className="p-6 max-w-6xl mx-auto space-y-5">
+      <div className="sm:p-2 max-w-6xl mx-auto space-y-5">
         {/* Header */}
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3 sm:gap-4">
           <Link href="/pacientes">
             <a className="inline-flex p-2 mt-1 rounded-lg border border-border hover:bg-muted transition-colors" aria-label="Volver a pacientes">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </a>
           </Link>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold">{p.nombres} {p.apellidos}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">{p.nombres} {p.apellidos}</h1>
               <Badge variant="outline" className="font-mono text-xs">{p.numeroHc}</Badge>
             </div>
             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
@@ -698,8 +698,8 @@ export default function PacienteDetailPage() {
             </Card>
 
             {/* Plan table */}
-            <Card className="shadow-sm overflow-hidden">
-              <div className="grid grid-cols-[3fr_1fr_1fr_1fr_auto] gap-3 px-4 py-2.5 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <Card className="shadow-sm overflow-x-auto">
+              <div className="grid grid-cols-[3fr_1fr_1fr_1fr_auto] min-w-[600px] gap-3 px-4 py-2.5 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 <div>Tratamientos</div>
                 <div className="text-right">P/U</div>
                 <div className="text-center">Cant.</div>
@@ -713,7 +713,7 @@ export default function PacienteDetailPage() {
               ) : (
                 <div className="divide-y divide-border">
                   {(plan ?? []).map(pt => (
-                    <div key={pt.id} className="grid grid-cols-[3fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 items-center hover:bg-muted/20">
+                    <div key={pt.id} className="grid grid-cols-[3fr_1fr_1fr_1fr_auto] min-w-[600px] gap-3 px-4 py-3 items-center hover:bg-muted/20">
                       <div>
                         <p className="text-sm font-medium">
                           {pt.tipoTratamiento?.nombre}
@@ -735,7 +735,7 @@ export default function PacienteDetailPage() {
                     </div>
                   ))}
                   {/* Total */}
-                  <div className="grid grid-cols-[3fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 items-center bg-muted/30">
+                  <div className="grid grid-cols-[3fr_1fr_1fr_1fr_auto] min-w-[600px] gap-3 px-4 py-3 items-center bg-muted/30">
                     <div className="text-sm font-bold uppercase text-muted-foreground">Total Plan</div>
                     <div />
                     <div />
@@ -816,8 +816,8 @@ export default function PacienteDetailPage() {
             </Card>
 
             {/* Sesiones table */}
-            <Card className="shadow-sm overflow-hidden">
-              <div className="grid grid-cols-[1fr_3fr_1fr_1fr_auto] gap-3 px-4 py-2.5 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <Card className="shadow-sm overflow-x-auto">
+              <div className="grid grid-cols-[1fr_3fr_1fr_1fr_auto] min-w-[600px] gap-3 px-4 py-2.5 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 <div>Fecha</div>
                 <div>Tratamiento Realizado</div>
                 <div className="text-right">Importe</div>
@@ -829,7 +829,7 @@ export default function PacienteDetailPage() {
               ) : (
                 <div className="divide-y divide-border">
                   {(sesiones ?? []).map(s => (
-                    <div key={s.id} className="grid grid-cols-[1fr_3fr_1fr_1fr_auto] gap-3 px-4 py-3 items-center hover:bg-muted/20">
+                    <div key={s.id} className="grid grid-cols-[1fr_3fr_1fr_1fr_auto] min-w-[600px] gap-3 px-4 py-3 items-center hover:bg-muted/20">
                       <div className="text-sm text-muted-foreground">{formatDate(s.fechaSesion)}</div>
                       <div>
                         <p className="text-sm">{s.tratamientoRealizado}</p>
@@ -943,8 +943,8 @@ export default function PacienteDetailPage() {
             </Card>
 
             {/* Pagos list */}
-            <Card className="shadow-sm overflow-hidden">
-              <div className="grid grid-cols-[1fr_1fr_1fr_2fr] gap-3 px-4 py-2.5 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <Card className="shadow-sm overflow-x-auto">
+              <div className="grid grid-cols-[1fr_1fr_1fr_2fr] min-w-[520px] gap-3 px-4 py-2.5 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 <div>Fecha</div>
                 <div className="text-right">Monto</div>
                 <div>Método</div>
@@ -955,7 +955,7 @@ export default function PacienteDetailPage() {
               ) : (
                 <div className="divide-y divide-border">
                   {(pagos ?? []).map(pg => (
-                    <div key={pg.id} className="grid grid-cols-[1fr_1fr_1fr_2fr] gap-3 px-4 py-3 items-center hover:bg-muted/20">
+                    <div key={pg.id} className="grid grid-cols-[1fr_1fr_1fr_2fr] min-w-[520px] gap-3 px-4 py-3 items-center hover:bg-muted/20">
                       <div className="text-sm text-muted-foreground">
                         {new Date(pg.fechaPago).toLocaleDateString("es-PE")}
                       </div>

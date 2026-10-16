@@ -16,6 +16,93 @@ router.get("/tipos-tratamiento", requireAuth, async (_req, res): Promise<void> =
   res.json(rows.map(r => ({ ...r, precioReferencia: Number(r.precioReferencia) })));
 });
 
+// ── Catálogo de procedimientos (gestión) ─────────────────────────
+
+type DatosProcedimiento = {
+  nombre?: string;
+  subtipo?: string | null;
+  codigo?: string | null;
+  precioReferencia?: string;
+  descripcion?: string | null;
+  activo?: boolean;
+};
+
+// Valida el cuerpo; con parcial=true solo se validan los campos presentes
+function leerProcedimiento(body: any, parcial: boolean): { datos?: DatosProcedimiento; error?: string } {
+  const datos: DatosProcedimiento = {};
+  const texto = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+
+  if (!parcial || body.nombre !== undefined) {
+    const nombre = texto(body.nombre);
+    if (!nombre) return { error: "El nombre es requerido" };
+    if (nombre.length > 80) return { error: "El nombre no puede tener más de 80 caracteres" };
+    datos.nombre = nombre;
+  }
+  if (body.subtipo !== undefined) {
+    const subtipo = texto(body.subtipo);
+    if (subtipo && subtipo.length > 50) return { error: "El subtipo no puede tener más de 50 caracteres" };
+    datos.subtipo = subtipo;
+  }
+  if (body.codigo !== undefined) {
+    const codigo = texto(body.codigo);
+    if (codigo && codigo.length > 20) return { error: "El código no puede tener más de 20 caracteres" };
+    datos.codigo = codigo;
+  }
+  if (!parcial || body.precioReferencia !== undefined) {
+    const precio = Number(body.precioReferencia ?? 0);
+    if (!Number.isFinite(precio) || precio < 0) return { error: "El precio debe ser un número mayor o igual a 0" };
+    datos.precioReferencia = precio.toFixed(2);
+  }
+  if (body.descripcion !== undefined) datos.descripcion = texto(body.descripcion);
+  if (body.activo !== undefined) datos.activo = Boolean(body.activo);
+  return { datos };
+}
+
+const respuesta = (r: typeof tiposTratamientoTable.$inferSelect) => ({ ...r, precioReferencia: Number(r.precioReferencia) });
+
+function esCodigoDuplicado(err: unknown): boolean {
+  const e = err as { code?: string; cause?: { code?: string } };
+  return e?.code === "23505" || e?.cause?.code === "23505";
+}
+
+// Incluye los procedimientos desactivados (para la pantalla de gestión)
+router.get("/tipos-tratamiento/todos", requireAuth, async (_req, res): Promise<void> => {
+  const rows = await db.select().from(tiposTratamientoTable)
+    .orderBy(desc(tiposTratamientoTable.activo), asc(tiposTratamientoTable.nombre));
+  res.json(rows.map(respuesta));
+});
+
+router.post("/tipos-tratamiento", requireAuth, async (req, res): Promise<void> => {
+  const { datos, error } = leerProcedimiento(req.body ?? {}, false);
+  if (error) { res.status(400).json({ error }); return; }
+  try {
+    const [row] = await db.insert(tiposTratamientoTable)
+      .values(datos as DatosProcedimiento & { nombre: string })
+      .returning();
+    res.status(201).json(respuesta(row));
+  } catch (err) {
+    if (esCodigoDuplicado(err)) { res.status(409).json({ error: "Ya existe un procedimiento con ese código" }); return; }
+    throw err;
+  }
+});
+
+router.patch("/tipos-tratamiento/:id", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id), 10);
+  if (!Number.isInteger(id)) { res.status(400).json({ error: "ID inválido" }); return; }
+  const { datos, error } = leerProcedimiento(req.body ?? {}, true);
+  if (error) { res.status(400).json({ error }); return; }
+  if (Object.keys(datos!).length === 0) { res.status(400).json({ error: "No hay cambios" }); return; }
+  try {
+    const [row] = await db.update(tiposTratamientoTable).set(datos!)
+      .where(eq(tiposTratamientoTable.id, id)).returning();
+    if (!row) { res.status(404).json({ error: "Procedimiento no encontrado" }); return; }
+    res.json(respuesta(row));
+  } catch (err) {
+    if (esCodigoDuplicado(err)) { res.status(409).json({ error: "Ya existe un procedimiento con ese código" }); return; }
+    throw err;
+  }
+});
+
 router.get("/pacientes/:id/plan-tratamientos", requireAuth, async (req, res): Promise<void> => {
   const params = GetPlanTratamientosParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: "ID inválido" }); return; }

@@ -9,6 +9,7 @@ import NuevoPacientePage from "@/pages/pacientes/nuevo";
 import PacienteDetailPage from "@/pages/pacientes/[id]";
 import CitasPage from "@/pages/citas/index";
 import NuevaCitaPage from "@/pages/citas/nueva";
+import ProcedimientosPage from "@/pages/procedimientos";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/pacientes/:id" component={PacienteDetailPage} />
       <Route path="/citas" component={CitasPage} />
       <Route path="/citas/nueva" component={NuevaCitaPage} />
+      <Route path="/procedimientos" component={ProcedimientosPage} />
       <Route component={NotFound} />
     </Switch>
   );

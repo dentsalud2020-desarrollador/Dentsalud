@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useListPacientes, getListPacientesQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
@@ -87,7 +87,7 @@ export default function PacientesPage() {
           ) : (
             <div>
               {/* Header row */}
-              <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 <div>Paciente</div>
                 <div>N° HC</div>
                 <div>DNI</div>
@@ -96,9 +96,35 @@ export default function PacientesPage() {
               </div>
               <div className="divide-y divide-border">
                 {pacientes.map((p) => (
+                  <React.Fragment key={p.id}>
+                  {/* Celular: tarjeta que se toca completa */}
+                  <Link href={`/pacientes/${p.id}`}>
+                    <a className="md:hidden flex items-center gap-3 px-4 py-3 active:bg-muted/50">
+                      <div className="h-10 w-10 rounded-full bg-[#8DC63F]/15 flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-semibold text-[#8DC63F]">
+                          {p.nombres.charAt(0)}{p.apellidos.charAt(0)}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium truncate">{p.nombres} {p.apellidos}</p>
+                          {p.fechaNacimiento && (
+                            <span className="text-xs text-muted-foreground flex-shrink-0">{calcEdad(p.fechaNacimiento)} años</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-x-3 gap-y-0.5 flex-wrap mt-0.5 text-xs text-muted-foreground">
+                          <span className="font-mono">{p.numeroHc}</span>
+                          {p.dni && <span>DNI {p.dni}</span>}
+                          {p.telefono && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{p.telefono}</span>}
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                    </a>
+                  </Link>
+
+                  {/* Computadora: fila de tabla */}
                   <div
-                    key={p.id}
-                    className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3.5 items-center hover:bg-muted/30 transition-colors"
+                    className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3.5 items-center hover:bg-muted/30 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="h-9 w-9 rounded-full bg-[#8DC63F]/15 flex items-center justify-center flex-shrink-0">
@@ -132,6 +158,7 @@ export default function PacientesPage() {
                       </Link>
                     </div>
                   </div>
+                  </React.Fragment>
                 ))}
               </div>
             </div>

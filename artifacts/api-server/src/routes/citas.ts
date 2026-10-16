@@ -1,9 +1,46 @@
 import { Router } from "express";
-import { eq, and, sql, desc, gte, lte } from "drizzle-orm";
+import { eq, and, sql, desc, gte, lte, lt, gt, ne, notInArray } from "drizzle-orm";
 import { db, citasTable, pacientesTable, usuariosTable, tiposTratamientoTable } from "@workspace/db";
-import { requireAuth } from "../middlewares/requireAuth";
+import { requireAuth, type AuthRequest } from "../middlewares/requireAuth";
 
 const router = Router();
+
+const HORA_RE = /^([01]d|2[0-3]):[0-5]d(:[0-5]d)?$/;
+const FECHA_RE = /^d{4}-d{2}-d{2}$/;
+
+function normalizarHora(hora: string): string {
+  return hora.length === 5 ? `${hora}:00` : hora;
+}
+
+// Devuelve un mensaje de error si el horario es inválido o se cruza con otra cita del odontólogo
+async function validarHorario(
+  odontologoId: number,
+  fechaCita: string,
+  horaInicio: string,
+  horaFin: string,
+  excluirId?: number,
+): Promise<string | null> {
+  if (!FECHA_RE.test(fechaCita)) return "Fecha inválida (formato AAAA-MM-DD)";
+  if (!HORA_RE.test(horaInicio) || !HORA_RE.test(horaFin)) return "Hora inválida (formato HH:MM)";
+  const inicio = normalizarHora(horaInicio);
+  const fin = normalizarHora(horaFin);
+  if (fin <= inicio) return "La hora de fin debe ser posterior a la hora de inicio";
+
+  const condiciones = [
+    eq(citasTable.odontologoId, odontologoId),
+    eq(citasTable.fechaCita, fechaCita),
+    lt(citasTable.horaInicio, fin),
+    gt(citasTable.horaFin, inicio),
+    notInArray(citasTable.estado, ["cancelada", "no_asistio"]),
+  ];
+  if (excluirId) condiciones.push(ne(citasTable.id, excluirId));
+  const [choque] = await db.select({ horaInicio: citasTable.horaInicio, horaFin: citasTable.horaFin })
+    .from(citasTable).where(and(...condiciones)).limit(1);
+  if (choque) {
+    return `El odontólogo ya tiene una cita de ${choque.horaInicio.slice(0, 5)} a ${choque.horaFin.slice(0, 5)} ese día`;
+  }
+  return null;
+}
 
 const citaSelect = {
   id: citasTable.id,
@@ -89,12 +126,14 @@ router.get("/citas/:id", requireAuth, async (req, res): Promise<void> => {
   res.json(row);
 });
 
-router.post("/citas", requireAuth, async (req, res): Promise<void> => {
+router.post("/citas", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const { pacienteId, odontologoId, tipoTratamientoId, fechaCita, horaInicio, horaFin, motivo, estado, canalReserva, notas } = req.body;
   if (!pacienteId || !odontologoId || !fechaCita || !horaInicio || !horaFin) {
     res.status(400).json({ error: "Campos requeridos: pacienteId, odontologoId, fechaCita, horaInicio, horaFin" });
     return;
   }
+  const errorHorario = await validarHorario(Number(odontologoId), fechaCita, horaInicio, horaFin);
+  if (errorHorario) { res.status(400).json({ error: errorHorario }); return; }
   const [cita] = await db.insert(citasTable).values({
     pacienteId: Number(pacienteId),
     odontologoId: Number(odontologoId),
@@ -106,7 +145,7 @@ router.post("/citas", requireAuth, async (req, res): Promise<void> => {
     estado: estado ?? "programada",
     canalReserva: canalReserva ?? "presencial",
     notas: notas ?? null,
-    creadoPor: (req as any).user?.userId ?? null,
+    creadoPor: req.userId ?? null,
   }).returning();
   res.status(201).json(cita);
 });
@@ -128,6 +167,18 @@ router.patch("/citas/:id/estado", requireAuth, async (req, res): Promise<void> =
 router.put("/citas/:id", requireAuth, async (req, res): Promise<void> => {
   const id = parseInt(String(req.params.id), 10);
   const { tipoTratamientoId, fechaCita, horaInicio, horaFin, motivo, estado, canalReserva, notas } = req.body;
+  const [actual] = await db.select().from(citasTable).where(eq(citasTable.id, id));
+  if (!actual) { res.status(404).json({ error: "Cita no encontrada" }); return; }
+  if (fechaCita || horaInicio || horaFin) {
+    const errorHorario = await validarHorario(
+      actual.odontologoId,
+      fechaCita || actual.fechaCita,
+      horaInicio || actual.horaInicio,
+      horaFin || actual.horaFin,
+      id,
+    );
+    if (errorHorario) { res.status(400).json({ error: errorHorario }); return; }
+  }
   const [updated] = await db.update(citasTable)
     .set({
       ...(tipoTratamientoId !== undefined && { tipoTratamientoId: tipoTratamientoId ? Number(tipoTratamientoId) : null }),
@@ -147,7 +198,10 @@ router.put("/citas/:id", requireAuth, async (req, res): Promise<void> => {
 
 router.delete("/citas/:id", requireAuth, async (req, res): Promise<void> => {
   const id = parseInt(String(req.params.id), 10);
-  const [deleted] = await db.delete(citasTable).where(eq(citasTable.id, id)).returning();
+  // No se borra la cita para conservar el historial; se marca como cancelada
+  const [deleted] = await db.update(citasTable)
+    .set({ estado: "cancelada", updatedAt: new Date() })
+    .where(eq(citasTable.id, id)).returning();
   if (!deleted) { res.status(404).json({ error: "Cita no encontrada" }); return; }
   res.status(204).send();
 });

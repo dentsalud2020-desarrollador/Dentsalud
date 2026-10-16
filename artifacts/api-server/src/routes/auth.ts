@@ -7,15 +7,32 @@ import { requireAuth, type AuthRequest } from "../middlewares/requireAuth";
 
 const router = Router();
 
+// Límite de intentos de login por IP: 10 intentos cada 15 minutos
+const MAX_INTENTOS = 10;
+const VENTANA_MS = 15 * 60 * 1000;
+const intentos = new Map<string, { count: number; resetAt: number }>();
+
 router.post("/auth/login", async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const ip = req.ip ?? "desconocida";
+  const ahora = Date.now();
+  let registro = intentos.get(ip);
+  if (!registro || registro.resetAt < ahora) {
+    registro = { count: 0, resetAt: ahora + VENTANA_MS };
+    intentos.set(ip, registro);
+  }
+  if (registro.count >= MAX_INTENTOS) {
+    res.status(429).json({ error: "Demasiados intentos. Intenta de nuevo en unos minutos." });
+    return;
+  }
   const { email, password } = parsed.data;
   const [usuario] = await db.select().from(usuariosTable).where(eq(usuariosTable.email, email));
   if (!usuario || !comparePassword(password, usuario.passwordHash)) {
+    registro.count++;
     res.status(401).json({ error: "Credenciales incorrectas" });
     return;
   }
@@ -23,6 +40,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     res.status(401).json({ error: "Usuario inactivo" });
     return;
   }
+  intentos.delete(ip);
   await db.update(usuariosTable).set({ ultimoAcceso: new Date() }).where(eq(usuariosTable.id, usuario.id));
   const token = signToken({ userId: usuario.id, rol: usuario.rol });
   res.json({

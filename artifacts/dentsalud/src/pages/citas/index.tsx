@@ -188,7 +188,7 @@ export default function CitasPage() {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm("¿Deseas eliminar esta cita? Esta acción no se puede deshacer.")) deleteCitaMutation.mutate({ id });
+    if (window.confirm("¿Deseas cancelar esta cita? Quedará registrada como cancelada.")) deleteCitaMutation.mutate({ id });
   };
 
   const handleSaveEdit = (event: React.FormEvent) => {

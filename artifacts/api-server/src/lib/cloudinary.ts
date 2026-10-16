@@ -72,4 +72,14 @@ export async function borrarArchivo(url: string): Promise<void> {
   await cloudinary.uploader.destroy(archivo.publicId, { type: archivo.tipo });
 }
 
+// Texto apto para nombre de archivo: sin tildes, en minúsculas y con guiones
+export function slugify(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "imagen";
+}
+
 export { cloudinary };

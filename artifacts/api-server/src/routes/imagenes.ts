@@ -7,7 +7,7 @@ import { requireAuth, type AuthRequest } from "../middlewares/requireAuth";
 import { logger } from "../lib/logger";
 import {
   cloudinary, cloudinaryConfigurado, carpetaCloudinary, TIPO_PRIVADO,
-  enlaceTemporal, hacerPrivado, borrarArchivo,
+  enlaceTemporal, hacerPrivado, borrarArchivo, slugify,
 } from "../lib/cloudinary";
 
 const router = Router();
@@ -18,15 +18,6 @@ function conEnlaceTemporal<T extends { rutaArchivo: string }>(imagen: T): T {
 }
 
 const storage = multer.memoryStorage();
-
-function slugify(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "imagen";
-}
 
 const fileFilter = (
   req: Request,

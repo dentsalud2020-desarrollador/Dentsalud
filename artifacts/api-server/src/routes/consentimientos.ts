@@ -4,7 +4,7 @@ import { eq, desc } from "drizzle-orm";
 import { db, consentimientosTable, pacientesTable } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/requireAuth";
 import {
-  cloudinary, cloudinaryConfigurado, carpetaCloudinary, TIPO_PRIVADO, enlaceTemporal, hacerPrivado,
+  cloudinary, cloudinaryConfigurado, carpetaCloudinary, TIPO_PRIVADO, enlaceTemporal, hacerPrivado, slugify,
 } from "../lib/cloudinary";
 import { logger } from "../lib/logger";
 
@@ -82,7 +82,7 @@ router.post("/pacientes/:id/consentimientos", requireAuth, async (req: AuthReque
     res.status(400).json({ error: "La imagen de la firma no es válida" }); return;
   }
 
-  const [paciente] = await db.select({ id: pacientesTable.id }).from(pacientesTable).where(eq(pacientesTable.id, pacienteId));
+  const [paciente] = await db.select({ nombres: pacientesTable.nombres, apellidos: pacientesTable.apellidos }).from(pacientesTable).where(eq(pacientesTable.id, pacienteId));
   if (!paciente) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   if (!cloudinaryConfigurado) { res.status(503).json({ error: "Cloudinary no está configurado en el servidor" }); return; }
@@ -100,7 +100,8 @@ router.post("/pacientes/:id/consentimientos", requireAuth, async (req: AuthReque
   try {
     subida = await cloudinary.uploader.upload(firma, {
       folder: `${carpetaCloudinary}/firmas`,
-      public_id: `firma-${pacienteId}-${firmadoAt.getTime()}`,
+      // Nombre y apellido del paciente; el número final evita que una firma nueva reemplace a otra
+      public_id: `${slugify(`${paciente.nombres} ${paciente.apellidos}`)}-${firmadoAt.getTime()}`,
       resource_type: "image",
       type: TIPO_PRIVADO,
     });

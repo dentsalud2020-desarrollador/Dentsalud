@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Odontodiagrama } from "@/components/odontodiagrama/Odontodiagrama";
 import { ImagenesUpload } from "@/components/pacientes/ImagenesUpload";
+import { Consentimientos } from "@/components/consentimientos/Consentimientos";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -308,6 +309,7 @@ export default function PacienteDetailPage() {
               { value: "examen", label: "Examen Clínico" },
               { value: "odontograma", label: "Odontodiagrama" },
               { value: "imagenes", label: "Imágenes" },
+              { value: "consentimientos", label: "Consentimientos" },
               { value: "plan", label: "Plan de Tratamientos" },
               { value: "sesiones", label: "Sesiones" },
               { value: "pagos", label: "Pagos" },
@@ -596,6 +598,15 @@ export default function PacienteDetailPage() {
                 <Odontodiagrama pacienteId={pacienteId} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* ── TAB: Consentimientos ── */}
+          <TabsContent value="consentimientos" className="mt-4">
+            <Consentimientos
+              pacienteId={pacienteId}
+              pacienteNombre={`${paciente.paciente.nombres} ${paciente.paciente.apellidos}`}
+              pacienteDocumento={paciente.paciente.dni ?? ""}
+            />
           </TabsContent>
 
           {/* ── TAB: Imágenes ── */}

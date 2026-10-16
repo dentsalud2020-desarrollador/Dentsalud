@@ -11,3 +11,4 @@ export * from "./sesiones";
 export * from "./pagos";
 export * from "./citas";
 export * from "./imagenes_pacientes";
+export * from "./consentimientos";

@@ -10,6 +10,7 @@ import pagosRouter from "./pagos";
 import dashboardRouter from "./dashboard";
 import citasRouter from "./citas";
 import imagenesRouter from "./imagenes";
+import consentimientosRouter from "./consentimientos";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(pagosRouter);
 router.use(dashboardRouter);
 router.use(citasRouter);
 router.use(imagenesRouter);
+router.use(consentimientosRouter);
 
 export default router;

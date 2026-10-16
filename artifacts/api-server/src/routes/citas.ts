@@ -2,6 +2,7 @@ import { Router } from "express";
 import { eq, and, sql, desc, gte, lte, lt, gt, ne, notInArray } from "drizzle-orm";
 import { db, citasTable, pacientesTable, usuariosTable, tiposTratamientoTable } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/requireAuth";
+import { hoyLocal } from "../lib/fecha";
 
 const router = Router();
 
@@ -65,7 +66,9 @@ router.get("/citas", requireAuth, async (req, res): Promise<void> => {
   const queryParams = req.query as Record<string, string | string[] | undefined>;
   const fecha = Array.isArray(queryParams.fecha) ? queryParams.fecha[0] : queryParams.fecha;
   const desde = Array.isArray(queryParams.desde) ? queryParams.desde[0] : queryParams.desde;
+  const hasta = Array.isArray(queryParams.hasta) ? queryParams.hasta[0] : queryParams.hasta;
   const estado = Array.isArray(queryParams.estado) ? queryParams.estado[0] : queryParams.estado;
+  const orden = Array.isArray(queryParams.orden) ? queryParams.orden[0] : queryParams.orden;
   const limitStr = Array.isArray(queryParams.limit) ? queryParams.limit[0] : queryParams.limit;
   const limit = Math.min(parseInt(limitStr ?? "100"), 200);
 
@@ -79,15 +82,19 @@ router.get("/citas", requireAuth, async (req, res): Promise<void> => {
   const conditions = [];
   if (fecha) conditions.push(eq(citasTable.fechaCita, fecha));
   if (desde) conditions.push(gte(citasTable.fechaCita, desde));
+  // "hasta" es exclusivo: hasta=hoy devuelve solo citas pasadas
+  if (hasta) conditions.push(lt(citasTable.fechaCita, hasta));
   if (estado) conditions.push(eq(citasTable.estado, estado));
   if (conditions.length) query = query.where(and(...conditions));
 
-  const rows = await query.orderBy(citasTable.fechaCita, citasTable.horaInicio).limit(limit);
+  const rows = orden === "desc"
+    ? await query.orderBy(desc(citasTable.fechaCita), desc(citasTable.horaInicio)).limit(limit)
+    : await query.orderBy(citasTable.fechaCita, citasTable.horaInicio).limit(limit);
   res.json(rows);
 });
 
 router.get("/citas/hoy", requireAuth, async (_req, res): Promise<void> => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = hoyLocal();
   const rows = await db
     .select(citaSelect)
     .from(citasTable)
@@ -99,7 +106,7 @@ router.get("/citas/hoy", requireAuth, async (_req, res): Promise<void> => {
 });
 
 router.get("/citas/proximas", requireAuth, async (_req, res): Promise<void> => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = hoyLocal();
   const rows = await db
     .select(citaSelect)
     .from(citasTable)

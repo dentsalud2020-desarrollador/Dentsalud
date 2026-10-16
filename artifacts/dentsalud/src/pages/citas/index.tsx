@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Layout } from "@/components/layout/Layout";
 import {
+  customFetch,
   useGetCitas, useGetCitasHoy, useUpdateCitaEstado, useUpdateCita, useDeleteCita,
   useListTiposTratamiento, getListTiposTratamientoQueryKey,
   getGetCitasHoyQueryKey, getGetCitasQueryKey,
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Calendar, Plus, Clock, Loader2, Pencil, Trash2, X } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Calendar, Plus, Clock, Loader2, Pencil, Trash2, X, History } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,13 @@ const ESTADO_CONFIG: Record<EstadoCita, { label: string; color: string; bg: stri
   cancelada:    { label: "Cancelada",    color: "text-red-700",     bg: "bg-red-100" },
   no_asistio:   { label: "No Asistió",   color: "text-gray-700",    bg: "bg-gray-100" },
 };
+
+// Fecha de hoy (AAAA-MM-DD) en la hora local del navegador, no en UTC
+function hoyLocal() {
+  return new Intl.DateTimeFormat("en-CA").format(new Date());
+}
+
+const LIMITE_PASADAS = 200;
 
 function formatHora(h: string) {
   return h?.slice(0, 5) ?? "";
@@ -122,13 +130,16 @@ function CitaCard({ cita, onChangeEstado, onEdit, onDelete }: {
 }
 
 export default function CitasPage() {
-  const [tab, setTab] = useState<"hoy" | "fecha" | "todas">("hoy");
+  const [tab, setTab] = useState<"hoy" | "fecha" | "todas" | "pasadas">("hoy");
+  const [pasadasDesde, setPasadasDesde] = useState("");
+  const [pasadasHasta, setPasadasHasta] = useState("");
+  const [pasadasEstado, setPasadasEstado] = useState("");
   const [filterFecha, setFilterFecha] = useState("");
   const [editingCita, setEditingCita] = useState<any | null>(null);
   const [editForm, setEditForm] = useState({ fechaCita: "", horaInicio: "", horaFin: "", motivo: "", notas: "", estado: "programada", tipoTratamientoId: "" });
   const { toast } = useToast();
   const qc = useQueryClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = hoyLocal();
 
   const { data: citasHoyRaw, isLoading: loadingHoy } = useGetCitasHoy({
     query: { queryKey: getGetCitasHoyQueryKey(), staleTime: 10000 },
@@ -139,6 +150,24 @@ export default function CitasPage() {
     { fecha: tab === "fecha" && filterFecha ? filterFecha : undefined, desde: tab === "todas" ? today : undefined, limit: tab === "todas" ? 200 : undefined },
     { query: { queryKey: getGetCitasQueryKey({ fecha: tab === "fecha" && filterFecha ? filterFecha : undefined, desde: tab === "todas" ? today : undefined, limit: tab === "todas" ? 200 : undefined }), staleTime: 10000 } }
   );
+
+  // Citas pasadas: anteriores a hoy (o hasta la fecha elegida), de la más reciente a la más antigua
+  const pasadasHastaExclusivo = (() => {
+    if (!pasadasHasta) return today;
+    const d = new Date(`${pasadasHasta}T00:00:00`);
+    d.setDate(d.getDate() + 1);
+    const siguiente = new Intl.DateTimeFormat("en-CA").format(d);
+    return siguiente < today ? siguiente : today;
+  })();
+  const pasadasParams = new URLSearchParams({ hasta: pasadasHastaExclusivo, orden: "desc", limit: String(LIMITE_PASADAS) });
+  if (pasadasDesde) pasadasParams.set("desde", pasadasDesde);
+  if (pasadasEstado) pasadasParams.set("estado", pasadasEstado);
+  const { data: citasPasadas = [], isLoading: loadingPasadas } = useQuery({
+    queryKey: ["/api/citas", "pasadas", pasadasParams.toString()],
+    queryFn: () => customFetch<any[]>(`/api/citas?${pasadasParams.toString()}`),
+    enabled: tab === "pasadas",
+    staleTime: 10000,
+  });
 
   const { data: tipos = [] } = useListTiposTratamiento({
     query: { queryKey: getListTiposTratamientoQueryKey(), staleTime: 60000 },
@@ -243,7 +272,7 @@ export default function CitasPage() {
         {/* Tabs */}
         <div className="border-b border-border">
           <div className="flex gap-6">
-            {(["hoy", "fecha", "todas"] as const).map(t => (
+            {(["hoy", "fecha", "todas", "pasadas"] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -254,7 +283,7 @@ export default function CitasPage() {
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 )}
               >
-                {t === "hoy" ? "Agenda de Hoy" : t === "fecha" ? "Buscar por Fecha" : "Todas las Citas"}
+                {t === "hoy" ? "Agenda de Hoy" : t === "fecha" ? "Buscar por Fecha" : t === "todas" ? "Próximas Citas" : "Citas Pasadas"}
               </button>
             ))}
           </div>
@@ -336,9 +365,69 @@ export default function CitasPage() {
 
         {tab === "todas" && (
           <Card className="shadow-sm">
-            <CardHeader className="pb-2"><CardTitle className="text-base font-semibold flex items-center gap-2"><Calendar className="h-4 w-4 text-[#8DC63F]" /> Todas las citas</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base font-semibold flex items-center gap-2"><Calendar className="h-4 w-4 text-[#8DC63F]" /> Próximas citas (desde hoy)</CardTitle></CardHeader>
             <CardContent>
               {loadingFiltradas ? <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : citasFiltradas.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No hay citas registradas</p> : <div className="space-y-2">{citasFiltradas.map(cita => <CitaCard key={cita.id} cita={cita} onChangeEstado={handleChangeEstado} onEdit={handleEdit} onDelete={handleDelete} />)}</div>}
+            </CardContent>
+          </Card>
+        )}
+
+        {tab === "pasadas" && (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2 space-y-3">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <History className="h-4 w-4 text-[#8DC63F]" /> Citas pasadas
+              </CardTitle>
+              <div className="flex flex-wrap items-end gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground">Desde</label>
+                  <input type="date" value={pasadasDesde} max={pasadasHasta || today} onChange={e => setPasadasDesde(e.target.value)} className="block border border-border rounded-md px-3 py-1.5 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Hasta</label>
+                  <input type="date" value={pasadasHasta} min={pasadasDesde || undefined} max={today} onChange={e => setPasadasHasta(e.target.value)} className="block border border-border rounded-md px-3 py-1.5 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Estado</label>
+                  <select value={pasadasEstado} onChange={e => setPasadasEstado(e.target.value)} className="block border border-border rounded-md px-3 py-1.5 text-sm bg-background">
+                    <option value="">Todos</option>
+                    {Object.entries(ESTADO_CONFIG).map(([value, config]) => <option key={value} value={value}>{config.label}</option>)}
+                  </select>
+                </div>
+                {(pasadasDesde || pasadasHasta || pasadasEstado) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setPasadasDesde(""); setPasadasHasta(""); setPasadasEstado(""); }}>
+                    Limpiar filtros
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingPasadas ? (
+                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+              ) : citasPasadas.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">No hay citas pasadas con estos filtros</p>
+              ) : (
+                <div className="space-y-4">
+                  {Object.entries(
+                    citasPasadas.reduce<Record<string, any[]>>((grupos, cita) => {
+                      (grupos[cita.fechaCita] ??= []).push(cita);
+                      return grupos;
+                    }, {}),
+                  ).map(([fecha, citas]) => (
+                    <div key={fecha}>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{formatFecha(fecha)}</p>
+                      <div className="space-y-2">
+                        {[...citas].reverse().map(cita => <CitaCard key={cita.id} cita={cita} onChangeEstado={handleChangeEstado} onEdit={handleEdit} onDelete={handleDelete} />)}
+                      </div>
+                    </div>
+                  ))}
+                  {citasPasadas.length >= LIMITE_PASADAS && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Se muestran las {LIMITE_PASADAS} citas más recientes. Usa los filtros de fecha para ver citas más antiguas.
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

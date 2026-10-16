@@ -3,13 +3,14 @@ import { eq, gte, and, sql, desc } from "drizzle-orm";
 import { db, pacientesTable, sesionesRealizadasTable, planTratamientosTable, pagosTable, citasTable } from "@workspace/db";
 import { GetActividadRecienteQueryParams } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
+import { hoyLocal } from "../lib/fecha";
 
 const router = Router();
 
 router.get("/dashboard/stats", requireAuth, async (_req, res): Promise<void> => {
   const now = new Date();
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const today = now.toISOString().split("T")[0];
+  const today = hoyLocal();
 
   const [{ total: totalPacientes }] = await db.select({ total: sql<number>`count(*)` })
     .from(pacientesTable).where(eq(pacientesTable.activo, true));

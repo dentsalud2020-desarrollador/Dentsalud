@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, decimal, varchar, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, decimal, varchar, text, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { pacientesTable } from "./pacientes";
@@ -15,7 +15,9 @@ export const pagosTable = pgTable("pagos", {
   notas: text("notas"),
   fechaPago: timestamp("fecha_pago", { withTimezone: true }).notNull().defaultNow(),
   registradoPor: integer("registrado_por").references(() => usuariosTable.id),
-});
+}, (t) => [
+  index("pagos_paciente_idx").on(t.pacienteId),
+]);
 
 export const insertPagoSchema = createInsertSchema(pagosTable).omit({ id: true });
 export type InsertPago = z.infer<typeof insertPagoSchema>;

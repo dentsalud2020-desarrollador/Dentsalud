@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, time, boolean, timestamp, date } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, time, boolean, timestamp, date, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { pacientesTable } from "./pacientes";
@@ -20,7 +20,11 @@ export const citasTable = pgTable("citas", {
   creadoPor: integer("creado_por").references(() => usuariosTable.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("citas_odontologo_fecha_idx").on(t.odontologoId, t.fechaCita),
+  index("citas_fecha_idx").on(t.fechaCita),
+  index("citas_paciente_idx").on(t.pacienteId),
+]);
 
 export const insertCitaSchema = createInsertSchema(citasTable, {
   estado: z.enum(["programada", "confirmada", "en_atencion", "completada", "cancelada", "no_asistio"]).default("programada"),

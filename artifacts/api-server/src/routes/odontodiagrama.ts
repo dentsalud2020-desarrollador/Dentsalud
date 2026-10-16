@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, odontodiagramaTable, piezasDentalesCatalogoTable } from "@workspace/db";
 import {
   GetOdontodiagramaParams, UpdateOdontodiagramaParams, UpdateOdontodiagramaBody,
@@ -22,26 +22,22 @@ router.put("/pacientes/:id/odontodiagrama", requireAuth, async (req, res): Promi
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const pacienteId = params.data.id;
-  const result = [];
+  if (parsed.data.piezas.length === 0) { res.json([]); return; }
 
-  for (const pieza of parsed.data.piezas) {
-    const existing = await db.select().from(odontodiagramaTable)
-      .where(eq(odontodiagramaTable.pacienteId, pacienteId));
-    const existingPieza = existing.find(e => e.numeroPieza === pieza.numeroPieza);
-
-    if (existingPieza) {
-      const [updated] = await db.update(odontodiagramaTable)
-        .set({ ...pieza, updatedAt: new Date() })
-        .where(eq(odontodiagramaTable.id, existingPieza.id))
-        .returning();
-      result.push(updated);
-    } else {
-      const [inserted] = await db.insert(odontodiagramaTable)
-        .values({ ...pieza, pacienteId })
-        .returning();
-      result.push(inserted);
-    }
-  }
+  // Una sola consulta: inserta las piezas nuevas y actualiza las existentes
+  const result = await db.insert(odontodiagramaTable)
+    .values(parsed.data.piezas.map(pieza => ({ ...pieza, pacienteId })))
+    .onConflictDoUpdate({
+      target: [odontodiagramaTable.pacienteId, odontodiagramaTable.numeroPieza],
+      set: {
+        estado: sql`excluded.estado`,
+        superficies: sql`excluded.superficies`,
+        observacion: sql`excluded.observacion`,
+        colorMarca: sql`excluded.color_marca`,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
 
   res.json(result);
 });

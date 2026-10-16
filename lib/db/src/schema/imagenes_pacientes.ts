@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, varchar, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, varchar, text, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { pacientesTable } from "./pacientes";
@@ -14,7 +14,9 @@ export const imagenesPacientesTable = pgTable("imagenes_pacientes", {
   nombreArchivo: varchar("nombre_archivo", { length: 255 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("imagenes_paciente_idx").on(t.pacienteId),
+]);
 
 export const insertImagenPacienteSchema = createInsertSchema(imagenesPacientesTable).omit({
   id: true,

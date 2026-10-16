@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, decimal, boolean, timestamp, date } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, decimal, boolean, timestamp, date, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { pacientesTable } from "./pacientes";
@@ -16,7 +16,9 @@ export const sesionesRealizadasTable = pgTable("sesiones_realizadas", {
   odontologoId: integer("odontologo_id").references(() => usuariosTable.id),
   confirmado: boolean("confirmado").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("sesiones_paciente_idx").on(t.pacienteId),
+]);
 
 export const insertSesionSchema = createInsertSchema(sesionesRealizadasTable).omit({ id: true, createdAt: true });
 export type InsertSesion = z.infer<typeof insertSesionSchema>;

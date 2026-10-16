@@ -3,10 +3,16 @@ import crypto from "crypto";
 import { eq, desc } from "drizzle-orm";
 import { db, consentimientosTable, pacientesTable } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/requireAuth";
-import { cloudinary, cloudinaryConfigurado, carpetaCloudinary } from "../lib/cloudinary";
+import {
+  cloudinary, cloudinaryConfigurado, carpetaCloudinary, TIPO_PRIVADO, enlaceTemporal, hacerPrivado,
+} from "../lib/cloudinary";
 import { logger } from "../lib/logger";
 
 const router = Router();
+
+function conEnlaceTemporal<T extends { firmaUrl: string }>(doc: T): T {
+  return { ...doc, firmaUrl: enlaceTemporal(doc.firmaUrl) };
+}
 
 const PREFIJO_PNG = "data:image/png;base64,";
 const MAX_FIRMA_BYTES = 300 * 1024;
@@ -35,7 +41,16 @@ router.get("/pacientes/:id/consentimientos", requireAuth, async (req, res): Prom
   const rows = await db.select().from(consentimientosTable)
     .where(eq(consentimientosTable.pacienteId, pacienteId))
     .orderBy(desc(consentimientosTable.firmadoAt));
-  res.json(rows);
+
+  // Firmas guardadas antes de este cambio eran públicas: se pasan a privadas al abrirlas
+  const actualizadas = await Promise.all(rows.map(async (doc) => {
+    const nuevaUrl = await hacerPrivado(doc.firmaUrl);
+    if (!nuevaUrl) return doc;
+    await db.update(consentimientosTable).set({ firmaUrl: nuevaUrl }).where(eq(consentimientosTable.id, doc.id));
+    return { ...doc, firmaUrl: nuevaUrl };
+  }));
+
+  res.json(actualizadas.map(conEnlaceTemporal));
 });
 
 router.post("/pacientes/:id/consentimientos", requireAuth, async (req: AuthRequest, res): Promise<void> => {
@@ -87,6 +102,7 @@ router.post("/pacientes/:id/consentimientos", requireAuth, async (req: AuthReque
       folder: `${carpetaCloudinary}/firmas`,
       public_id: `firma-${pacienteId}-${firmadoAt.getTime()}`,
       resource_type: "image",
+      type: TIPO_PRIVADO,
     });
   } catch (error) {
     logger.error({ error }, "Error al subir la firma a Cloudinary");
@@ -112,10 +128,10 @@ router.post("/pacientes/:id/consentimientos", requireAuth, async (req: AuthReque
       firmadoAt,
     }).returning();
     logger.info({ pacienteId, consentimientoId: row.id }, "Documento firmado");
-    res.status(201).json(row);
+    res.status(201).json(conEnlaceTemporal(row));
   } catch (error) {
     // Si falla la base de datos, se borra la firma subida para no dejar archivos huérfanos
-    await cloudinary.uploader.destroy(subida.public_id).catch(() => undefined);
+    await cloudinary.uploader.destroy(subida.public_id, { type: TIPO_PRIVADO }).catch(() => undefined);
     throw error;
   }
 });
@@ -128,7 +144,7 @@ router.get("/consentimientos/:id/verificar", requireAuth, async (req, res): Prom
   if (!doc) { res.status(404).json({ error: "Documento no encontrado" }); return; }
 
   try {
-    const respuesta = await fetch(doc.firmaUrl);
+    const respuesta = await fetch(enlaceTemporal(doc.firmaUrl));
     if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
     const firmaBase64 = Buffer.from(await respuesta.arrayBuffer()).toString("base64");
     const hash = calcularHash({

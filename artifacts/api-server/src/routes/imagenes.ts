@@ -1,25 +1,20 @@
 import { Router, type Request } from "express";
 import multer from "multer";
 import path from "path";
-import { v2 as cloudinary } from "cloudinary";
 import { eq, and } from "drizzle-orm";
 import { db, imagenesPacientesTable, pacientesTable } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middlewares/requireAuth";
 import { logger } from "../lib/logger";
+import {
+  cloudinary, cloudinaryConfigurado, carpetaCloudinary, TIPO_PRIVADO,
+  enlaceTemporal, hacerPrivado, borrarArchivo,
+} from "../lib/cloudinary";
 
 const router = Router();
 
-const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "";
-const apiKey = process.env.CLOUDINARY_API_KEY || "";
-const apiSecret = process.env.CLOUDINARY_API_SECRET || "";
-
-if (cloudName && apiKey && apiSecret) {
-  cloudinary.config({
-    cloud_name: cloudName,
-    api_key: apiKey,
-    api_secret: apiSecret,
-    secure: true,
-  });
+// La URL guardada no se puede abrir directamente; se envía un enlace temporal
+function conEnlaceTemporal<T extends { rutaArchivo: string }>(imagen: T): T {
+  return { ...imagen, rutaArchivo: enlaceTemporal(imagen.rutaArchivo) };
 }
 
 const storage = multer.memoryStorage();
@@ -86,7 +81,7 @@ router.post(
         return;
       }
 
-      if (!cloudName || !apiKey || !apiSecret) {
+      if (!cloudinaryConfigurado) {
         res.status(503).json({ error: "Cloudinary no está configurado en el servidor" });
         return;
       }
@@ -101,9 +96,10 @@ router.post(
       const uploadResult = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
-            folder: process.env.CLOUDINARY_FOLDER || "dental-care/pacientes",
+            folder: carpetaCloudinary,
             public_id: nombreBase,
             resource_type: "image",
+            type: TIPO_PRIVADO,
           },
           (error, result) => {
             if (error || !result) {
@@ -137,7 +133,7 @@ router.post(
         { pacienteId, imagenId: imagen.id, filename: nombreArchivo, publicId },
         "Imagen subida exitosamente"
       );
-      res.status(201).json(imagen);
+      res.status(201).json(conEnlaceTemporal(imagen));
     } catch (error) {
       logger.error({ error }, "Error al subir imagen");
       res.status(500).json({ error: "Error al subir la imagen" });
@@ -158,7 +154,17 @@ router.get(
         .from(imagenesPacientesTable)
         .where(eq(imagenesPacientesTable.pacienteId, pacienteId));
 
-      res.json(imagenes);
+      // Las imágenes subidas antes de este cambio eran públicas: se pasan a privadas la primera vez que se abren
+      const actualizadas = await Promise.all(imagenes.map(async (imagen) => {
+        const nuevaUrl = await hacerPrivado(imagen.rutaArchivo);
+        if (!nuevaUrl) return imagen;
+        await db.update(imagenesPacientesTable)
+          .set({ rutaArchivo: nuevaUrl, updatedAt: new Date() })
+          .where(eq(imagenesPacientesTable.id, imagen.id));
+        return { ...imagen, rutaArchivo: nuevaUrl };
+      }));
+
+      res.json(actualizadas.map(conEnlaceTemporal));
     } catch (error) {
       logger.error({ error }, "Error al obtener imágenes");
       res.status(500).json({ error: "Error al obtener las imágenes" });
@@ -190,14 +196,7 @@ router.delete(
         return;
       }
 
-      if (imagen.rutaArchivo.includes("res.cloudinary.com")) {
-        const publicIdMatch = imagen.rutaArchivo.match(/\/image\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
-        const publicId = publicIdMatch ? publicIdMatch[1] : null;
-
-        if (publicId) {
-          await cloudinary.uploader.destroy(publicId);
-        }
-      }
+      await borrarArchivo(imagen.rutaArchivo);
 
       await db
         .delete(imagenesPacientesTable)

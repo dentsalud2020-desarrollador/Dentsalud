@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, usuariosTable } from "@workspace/db";
 import { LoginBody } from "@workspace/api-zod";
 import { comparePassword, signToken } from "../lib/auth";
@@ -29,8 +29,10 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     res.status(429).json({ error: "Demasiados intentos. Intenta de nuevo en unos minutos." });
     return;
   }
-  const { email, password } = parsed.data;
-  const [usuario] = await db.select().from(usuariosTable).where(eq(usuariosTable.email, email));
+  const { password } = parsed.data;
+  // Los correos no distinguen mayúsculas: se comparan en minúsculas y sin espacios
+  const email = parsed.data.email.trim().toLowerCase();
+  const [usuario] = await db.select().from(usuariosTable).where(eq(sql`lower(${usuariosTable.email})`, email));
   if (!usuario || !comparePassword(password, usuario.passwordHash)) {
     registro.count++;
     res.status(401).json({ error: "Credenciales incorrectas" });

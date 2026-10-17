@@ -19,6 +19,7 @@
   --color-popover-foreground: hsl(var(--popover-foreground));
   --color-popover-border: hsl(var(--popover-border));
 
+  --color-brand: #8DC63F;
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
   --color-primary-border: var(--primary-border);
@@ -93,7 +94,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE — DentSalud brand: green #8DC63F (primary), blue #00AEEF (accent) */
+/* LIGHT MODE — DentSalud: verde y blanco. --brand es el verde de marca #8DC63F (logo y detalles) */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
@@ -101,52 +102,52 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 210 20% 98%;
-  --foreground: 220 20% 15%;
-  --border: 220 13% 88%;
+  --background: 90 30% 98%;
+  --foreground: 150 20% 14%;
+  --border: 95 18% 88%;
   --card: 0 0% 100%;
-  --card-foreground: 220 20% 15%;
-  --card-border: 220 13% 91%;
+  --card-foreground: 150 20% 14%;
+  --card-border: 95 18% 90%;
 
-  /* Sidebar — dark green branded */
-  --sidebar: 160 30% 18%;
-  --sidebar-foreground: 0 0% 95%;
-  --sidebar-border: 160 25% 22%;
-  --sidebar-primary: 82 58% 51%;
+  /* Sidebar — blanco con acentos verdes */
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 150 15% 22%;
+  --sidebar-border: 95 18% 90%;
+  --sidebar-primary: 95 55% 34%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 160 25% 24%;
-  --sidebar-accent-foreground: 0 0% 95%;
-  --sidebar-ring: 82 58% 51%;
+  --sidebar-accent: 90 55% 94%;
+  --sidebar-accent-foreground: 95 60% 24%;
+  --sidebar-ring: 95 55% 40%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 220 20% 15%;
-  --popover-border: 220 13% 88%;
+  --popover-foreground: 150 20% 14%;
+  --popover-border: 95 18% 88%;
 
-  /* Primary — DentSalud Green #8DC63F */
-  --primary: 82 58% 51%;
+  /* Primary — verde DentSalud más oscuro, para que el texto blanco se lea bien */
+  --primary: 95 55% 34%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary — light gray */
-  --secondary: 220 14% 93%;
-  --secondary-foreground: 220 20% 25%;
+  /* Secondary — verde muy claro */
+  --secondary: 90 45% 93%;
+  --secondary-foreground: 95 60% 24%;
 
   /* Muted */
-  --muted: 220 14% 95%;
-  --muted-foreground: 220 10% 50%;
+  --muted: 90 25% 95%;
+  --muted-foreground: 150 8% 40%;
 
-  /* Accent — DentSalud Blue #00AEEF */
-  --accent: 199 100% 47%;
-  --accent-foreground: 0 0% 100%;
+  /* Accent — verde claro para fondos al pasar el mouse */
+  --accent: 90 55% 94%;
+  --accent-foreground: 95 60% 24%;
 
   /* Destructive */
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 220 13% 83%;
-  --ring: 82 58% 51%;
+  --input: 95 15% 82%;
+  --ring: 95 55% 40%;
 
   --chart-1: 82 58% 51%;
-  --chart-2: 199 100% 47%;
+  --chart-2: 160 60% 38%;
   --chart-3: 142 76% 36%;
   --chart-4: 38 92% 50%;
   --chart-5: 0 72% 51%;
@@ -154,7 +155,7 @@
   --app-font-sans: 'Inter', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 
   --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.05);
   --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.07);

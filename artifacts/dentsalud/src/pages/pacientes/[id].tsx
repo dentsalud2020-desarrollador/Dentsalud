@@ -262,7 +262,7 @@ export default function PacienteDetailPage() {
         <div className="p-6 text-center">
           <p className="text-muted-foreground">Paciente no encontrado</p>
           <Link href="/pacientes">
-            <a className="mt-2 inline-block text-sm text-[#8DC63F] hover:underline">
+            <a className="mt-2 inline-block text-sm text-primary hover:underline">
               Volver a pacientes
             </a>
           </Link>
@@ -295,7 +295,7 @@ export default function PacienteDetailPage() {
               <span>Apertura: {formatDate(p.fechaApertura)}</span>
               {p.dni && <span>DNI: {p.dni}</span>}
               {p.telefono && <span>Tel: {p.telefono}</span>}
-              <span className="text-[#8DC63F] font-medium">Dr. Alan Miller Prado Varela</span>
+              <span className="text-primary font-medium">Dr. Alan Miller Prado Varela</span>
             </div>
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function PacienteDetailPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-semibold">Información Personal</CardTitle>
                   {!datosEditing && (
-                    <button onClick={initDatosForm} className="text-xs text-[#00AEEF] hover:underline">
+                    <button onClick={initDatosForm} className="text-xs text-primary hover:underline">
                       Editar
                     </button>
                   )}
@@ -430,7 +430,7 @@ export default function PacienteDetailPage() {
                     <div className="flex gap-3">
                       <Button variant="outline" onClick={() => setDatosEditing(false)}>Cancelar</Button>
                       <Button
-                        className="bg-[#8DC63F] hover:bg-[#7ab535] text-white"
+                        className="bg-primary hover:bg-primary/90 text-white"
                         disabled={updatePacienteMutation.isPending}
                         onClick={() => {
                           updatePacienteMutation.mutate({
@@ -513,7 +513,7 @@ export default function PacienteDetailPage() {
                   />
                 </div>
                 <Button
-                  className="bg-[#8DC63F] hover:bg-[#7ab535] text-white"
+                  className="bg-primary hover:bg-primary/90 text-white"
                   disabled={upsertAntecedentesMutation.isPending}
                   onClick={() => {
                     upsertAntecedentesMutation.mutate({
@@ -564,7 +564,7 @@ export default function PacienteDetailPage() {
                   ))}
                 </div>
                 <Button
-                  className="bg-[#8DC63F] hover:bg-[#7ab535] text-white"
+                  className="bg-primary hover:bg-primary/90 text-white"
                   disabled={upsertExamenMutation.isPending}
                   onClick={() => {
                     upsertExamenMutation.mutate({
@@ -677,7 +677,7 @@ export default function PacienteDetailPage() {
                   <div className="md:col-span-4">
                     <Button
                       disabled={!planForm.tipoId || !planForm.precioUnitario || createPlanMutation.isPending}
-                      className="bg-[#8DC63F] hover:bg-[#7ab535] text-white"
+                      className="bg-primary hover:bg-primary/90 text-white"
                       onClick={() => {
                         createPlanMutation.mutate({
                           id: pacienteId,
@@ -739,7 +739,7 @@ export default function PacienteDetailPage() {
                     <div className="text-sm font-bold uppercase text-muted-foreground">Total Plan</div>
                     <div />
                     <div />
-                    <div className="text-right text-base font-bold text-[#8DC63F]">{formatCurrency(totalPlan)}</div>
+                    <div className="text-right text-base font-bold text-primary">{formatCurrency(totalPlan)}</div>
                     <div />
                   </div>
                 </div>
@@ -795,7 +795,7 @@ export default function PacienteDetailPage() {
                   <div className="md:col-span-3">
                     <Button
                       disabled={!sesionForm.tratamientoRealizado || !sesionForm.fechaSesion || createSesionMutation.isPending}
-                      className="bg-[#8DC63F] hover:bg-[#7ab535] text-white"
+                      className="bg-primary hover:bg-primary/90 text-white"
                       onClick={() => {
                         createSesionMutation.mutate({
                           id: pacienteId,
@@ -844,8 +844,8 @@ export default function PacienteDetailPage() {
                           })}
                           className={`h-6 w-6 rounded flex items-center justify-center border transition-colors ${
                             s.confirmado
-                              ? "bg-[#8DC63F] border-[#8DC63F] text-white"
-                              : "border-border text-muted-foreground hover:border-[#8DC63F]"
+                              ? "bg-primary border-primary text-white"
+                              : "border-border text-muted-foreground hover:border-primary"
                           }`}
                         >
                           {s.confirmado && <Check className="h-3.5 w-3.5" />}
@@ -872,8 +872,8 @@ export default function PacienteDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 { label: "Total Plan", value: totalPlan, color: "text-foreground" },
-                { label: "Total Pagado", value: totalPagado, color: "text-[#8DC63F]" },
-                { label: "Saldo", value: saldo, color: saldo > 0 ? "text-destructive" : "text-[#8DC63F]" },
+                { label: "Total Pagado", value: totalPagado, color: "text-primary" },
+                { label: "Saldo", value: saldo, color: saldo > 0 ? "text-destructive" : "text-primary" },
               ].map(({ label, value, color }) => (
                 <Card key={label} className="shadow-sm">
                   <CardContent className="p-4">
@@ -923,7 +923,7 @@ export default function PacienteDetailPage() {
                   <div className="md:col-span-3">
                     <Button
                       disabled={!pagoForm.monto || Number(pagoForm.monto) <= 0 || createPagoMutation.isPending}
-                      className="bg-[#8DC63F] hover:bg-[#7ab535] text-white"
+                      className="bg-primary hover:bg-primary/90 text-white"
                       onClick={() => {
                         createPagoMutation.mutate({
                           id: pacienteId,
@@ -959,7 +959,7 @@ export default function PacienteDetailPage() {
                       <div className="text-sm text-muted-foreground">
                         {new Date(pg.fechaPago).toLocaleDateString("es-PE")}
                       </div>
-                      <div className="text-right text-sm font-semibold text-[#8DC63F]">{formatCurrency(pg.monto)}</div>
+                      <div className="text-right text-sm font-semibold text-primary">{formatCurrency(pg.monto)}</div>
                       <div>
                         <Badge variant="outline" className="text-xs capitalize">{pg.metodoPago}</Badge>
                       </div>

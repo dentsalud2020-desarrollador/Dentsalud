@@ -42,16 +42,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f0f9f4] to-[#e8f4f8]">
+    <div className="min-h-dvh flex items-center justify-center bg-gradient-to-br from-accent via-background to-white p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-border">
+          <div className="h-1.5 bg-gradient-to-r from-brand to-primary" aria-hidden="true" />
+          <div className="p-6 sm:p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8DC63F]/20 to-[#00AEEF]/20 mb-4" aria-hidden="true">
-              <Stethoscope className="h-8 w-8 text-[#8DC63F]" aria-hidden="true" focusable="false" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand/25 to-brand/10 mb-4" aria-hidden="true">
+              <Stethoscope className="h-8 w-8 text-primary" aria-hidden="true" focusable="false" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
-              <span className="text-[#8DC63F]">Dent</span><span className="text-[#00AEEF]">Salud</span>
+              <span className="text-brand">Dent</span><span className="text-primary">Salud</span>
             </h1>
             <p className="text-sm text-gray-500 mt-1">Tu Centro de Armonía Dentofacial</p>
             <p className="text-xs text-gray-400 mt-2">Sistema de Gestión Odontológica</p>
@@ -108,7 +110,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loginMutation.isPending}
-              className="w-full h-11 bg-[#8DC63F] hover:bg-[#7ab535] text-white font-medium"
+              className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-medium"
             >
               {loginMutation.isPending ? (
                 <span className="flex items-center gap-2">
@@ -122,6 +124,7 @@ export default function LoginPage() {
           <p className="text-center text-xs text-gray-400 mt-6">
             Centro DentSalud — Trujillo, Perú
           </p>
+          </div>
         </div>
       </div>
     </div>

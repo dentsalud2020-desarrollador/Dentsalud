@@ -17,16 +17,16 @@ function StatCard({ title, value, sub, icon: Icon, color }: {
   title: string; value: string | number; sub?: string; icon: React.ElementType; color: string;
 }) {
   return (
-    <Card className="shadow-sm">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold mt-1">{value}</p>
+    <Card className="shadow-sm border-l-4 border-l-brand">
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm text-muted-foreground">{title}</p>
+            <p className="text-xl sm:text-2xl font-bold mt-1 truncate">{value}</p>
             {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
           </div>
-          <div className={`p-2.5 rounded-xl ${color}`}>
-            <Icon className="h-5 w-5 text-white" />
+          <div className={`p-2.5 rounded-xl flex-shrink-0 ${color}`}>
+            <Icon className="h-5 w-5" />
           </div>
         </div>
       </CardContent>
@@ -71,13 +71,13 @@ export default function DashboardPage() {
           </div>
           <div className="flex gap-2 flex-wrap">
             <Link href="/citas/nueva">
-              <button className="flex items-center gap-2 px-4 py-2 bg-[#00AEEF] text-white rounded-lg text-sm font-medium hover:bg-[#0099d4] transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary/40 rounded-lg text-sm font-medium hover:bg-accent transition-colors">
                 <CalendarDays className="h-4 w-4" />
                 Nueva Cita
               </button>
             </Link>
             <Link href="/pacientes/nuevo">
-              <button className="flex items-center gap-2 px-4 py-2 bg-[#8DC63F] text-white rounded-lg text-sm font-medium hover:bg-[#7ab535] transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
                 <UserPlus className="h-4 w-4" />
                 Nuevo Paciente
               </button>
@@ -103,28 +103,28 @@ export default function DashboardPage() {
               value={stats?.totalPacientes ?? 0}
               sub={`+${stats?.pacientesEsteMes ?? 0} este mes`}
               icon={Users}
-              color="bg-[#8DC63F]"
+              color="bg-primary/10 text-primary"
             />
             <StatCard
               title="Citas Hoy"
               value={stats?.citasHoy ?? 0}
               sub={`${stats?.citasPendientes ?? 0} pendientes`}
               icon={CalendarDays}
-              color="bg-[#00AEEF]"
+              color="bg-emerald-100 text-emerald-700"
             />
             <StatCard
               title="Tratamientos Pendientes"
               value={stats?.tratamientosPendientes ?? 0}
               sub={`${stats?.tratamientosCompletados ?? 0} completados`}
               icon={ClipboardList}
-              color="bg-amber-500"
+              color="bg-amber-100 text-amber-700"
             />
             <StatCard
               title="Ingresos del Mes"
               value={formatCurrency(stats?.ingresosMes ?? 0)}
               sub={`Hoy: ${formatCurrency(stats?.ingresosHoy ?? 0)}`}
               icon={DollarSign}
-              color="bg-emerald-600"
+              color="bg-lime-100 text-lime-700"
             />
           </div>
         )}
@@ -136,11 +136,11 @@ export default function DashboardPage() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-[#00AEEF]" />
+                  <CalendarDays className="h-4 w-4 text-primary" />
                   Agenda de Hoy
                 </CardTitle>
                 <Link href="/citas">
-                  <a className="text-xs text-[#00AEEF] hover:underline cursor-pointer">Ver todas</a>
+                  <a className="text-xs text-primary hover:underline cursor-pointer">Ver todas</a>
                 </Link>
               </div>
             </CardHeader>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
                   <CalendarDays className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">Sin citas para hoy</p>
                   <Link href="/citas/nueva">
-                    <a className="text-xs text-[#8DC63F] hover:underline cursor-pointer mt-1 inline-block">
+                    <a className="text-xs text-primary hover:underline cursor-pointer mt-1 inline-block">
                       + Agendar cita
                     </a>
                   </Link>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
                       <div key={cita.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:bg-accent/30 transition-colors">
                         <div className={cn("w-2 h-2 rounded-full flex-shrink-0", cfg.dot)} />
                         <div className="flex-shrink-0 text-center min-w-[40px]">
-                          <p className="text-xs font-bold text-[#8DC63F]">{formatHora(cita.horaInicio)}</p>
+                          <p className="text-xs font-bold text-primary">{formatHora(cita.horaInicio)}</p>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{cita.pacienteNombres} {cita.pacienteApellidos}</p>
@@ -204,11 +204,11 @@ export default function DashboardPage() {
                   <div className="divide-y divide-border max-h-44 overflow-y-auto">
                     {actividad.map((item, i) => (
                       <div key={i} className="py-2.5 flex items-start gap-3">
-                        <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${item.tipo === "nuevo_paciente" ? "bg-[#8DC63F]" : "bg-[#00AEEF]"}`} />
+                        <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${item.tipo === "nuevo_paciente" ? "bg-primary" : "bg-primary"}`} />
                         <div className="flex-1 min-w-0">
                           {item.pacienteNombre && (
                             <Link href={`/pacientes/${item.pacienteId}`}>
-                              <p className="text-xs font-medium hover:text-[#8DC63F] cursor-pointer truncate">{item.pacienteNombre}</p>
+                              <p className="text-xs font-medium hover:text-primary cursor-pointer truncate">{item.pacienteNombre}</p>
                             </Link>
                           )}
                           <p className="text-xs text-muted-foreground truncate">{item.descripcion}</p>
@@ -237,14 +237,14 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Link href="/pacientes/nuevo">
-                  <a className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-[#8DC63F]/50 hover:bg-[#8DC63F]/5 transition-colors">
-                    <div className="p-1.5 bg-[#8DC63F]/10 rounded-lg"><UserPlus className="h-3.5 w-3.5 text-[#8DC63F]" aria-hidden="true" /></div>
+                  <a className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors">
+                    <div className="p-1.5 bg-primary/10 rounded-lg"><UserPlus className="h-3.5 w-3.5 text-primary" aria-hidden="true" /></div>
                     <p className="text-sm font-medium">Registrar Paciente</p>
                   </a>
                 </Link>
                 <Link href="/citas/nueva">
-                  <a className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-[#00AEEF]/50 hover:bg-[#00AEEF]/5 transition-colors">
-                    <div className="p-1.5 bg-[#00AEEF]/10 rounded-lg"><CalendarDays className="h-3.5 w-3.5 text-[#00AEEF]" aria-hidden="true" /></div>
+                  <a className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors">
+                    <div className="p-1.5 bg-primary/10 rounded-lg"><CalendarDays className="h-3.5 w-3.5 text-primary" aria-hidden="true" /></div>
                     <p className="text-sm font-medium">Agendar Cita</p>
                   </a>
                 </Link>

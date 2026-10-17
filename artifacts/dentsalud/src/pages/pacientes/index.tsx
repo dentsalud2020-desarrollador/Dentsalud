@@ -35,7 +35,7 @@ export default function PacientesPage() {
             </p>
           </div>
           <Link href="/pacientes/nuevo">
-            <a className="inline-flex items-center gap-2 px-4 py-2 bg-[#8DC63F] text-white rounded-lg text-sm font-medium hover:bg-[#7ab535] transition-colors">
+            <a className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
               <UserPlus className="h-4 w-4" aria-hidden="true" />
               Nuevo Paciente
             </a>
@@ -78,7 +78,7 @@ export default function PacientesPage() {
               </p>
               {!busqueda && (
                 <Link href="/pacientes/nuevo">
-                  <a className="mt-3 inline-block text-sm text-[#8DC63F] hover:underline">
+                  <a className="mt-3 inline-block text-sm text-primary hover:underline">
                     Registrar primer paciente
                   </a>
                 </Link>
@@ -100,8 +100,8 @@ export default function PacientesPage() {
                   {/* Celular: tarjeta que se toca completa */}
                   <Link href={`/pacientes/${p.id}`}>
                     <a className="md:hidden flex items-center gap-3 px-4 py-3 active:bg-muted/50">
-                      <div className="h-10 w-10 rounded-full bg-[#8DC63F]/15 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-[#8DC63F]">
+                      <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-semibold text-primary">
                           {p.nombres.charAt(0)}{p.apellidos.charAt(0)}
                         </span>
                       </div>
@@ -127,8 +127,8 @@ export default function PacientesPage() {
                     className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3.5 items-center hover:bg-muted/30 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-full bg-[#8DC63F]/15 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-[#8DC63F]">
+                      <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-semibold text-primary">
                           {p.nombres.charAt(0)}{p.apellidos.charAt(0)}
                         </span>
                       </div>
@@ -152,7 +152,7 @@ export default function PacientesPage() {
                     </div>
                     <div>
                       <Link href={`/pacientes/${p.id}`}>
-                        <button className="px-3 py-1.5 text-xs text-[#00AEEF] border border-[#00AEEF]/30 rounded-lg hover:bg-[#00AEEF]/5 transition-colors">
+                        <button className="px-3 py-1.5 text-xs text-primary border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors">
                           Ver Historia
                         </button>
                       </Link>

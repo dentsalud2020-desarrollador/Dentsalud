@@ -56,7 +56,7 @@ export function Layout({ children }: LayoutProps) {
       </a>
       <Sidebar abierto={menuAbierto} onCerrar={() => setMenuAbierto(false)} />
       <main id="main-content" className="flex-1 min-w-0 overflow-y-auto" aria-label="Contenido principal" role="main">
-        <header role="banner" className="sticky top-0 z-30 bg-white border-b px-3 py-2 sm:p-4 flex items-center justify-between gap-3">
+        <header role="banner" className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-border px-3 py-2 sm:px-6 sm:py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <button
               type="button"
@@ -67,16 +67,16 @@ export function Layout({ children }: LayoutProps) {
               <Menu className="h-5 w-5" />
             </button>
             <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold text-[#0b6fa1]">DentSalud</h2>
+              <h2 className="text-lg sm:text-xl font-bold"><span className="text-brand">Dent</span><span className="text-primary">Salud</span></h2>
               <div className="hidden sm:block text-sm text-muted-foreground">Tu centro de armonía dentofacial</div>
             </div>
           </div>
-          <div className="text-right text-xs sm:text-sm">
+          <div className="text-right text-xs sm:text-sm text-muted-foreground">
             <div>044 - 637 622</div>
             <div>997 054 525</div>
           </div>
         </header>
-        <div className="p-3 sm:p-4">{children}</div>
+        <div className="p-3 sm:p-6">{children}</div>
       </main>
     </div>
   );

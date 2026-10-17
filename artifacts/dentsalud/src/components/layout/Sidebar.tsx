@@ -35,10 +35,12 @@ export function Sidebar({ abierto = false, onCerrar }: SidebarProps) {
       {/* Logo */}
       <div className="px-6 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <Stethoscope className="h-6 w-6 text-[#8DC63F]" />
+          <div className="h-9 w-9 rounded-xl bg-brand/15 flex items-center justify-center flex-shrink-0">
+            <Stethoscope className="h-5 w-5 text-primary" />
+          </div>
           <div>
             <div className="font-bold text-base leading-tight">
-              <span className="text-[#8DC63F]">Dent</span><span className="text-[#00AEEF]">Salud</span>
+              <span className="text-brand">Dent</span><span className="text-primary">Salud</span>
             </div>
             <div className="text-xs text-sidebar-foreground/60 leading-tight">Tu Centro de Armonía Dentofacial</div>
           </div>
@@ -63,8 +65,8 @@ export function Sidebar({ abierto = false, onCerrar }: SidebarProps) {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
                   active
-                    ? "bg-[#8DC63F]/20 text-[#8DC63F]"
-                    : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
                 <Icon className="h-4 w-4 flex-shrink-0" />

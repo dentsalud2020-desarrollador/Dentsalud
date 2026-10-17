@@ -272,7 +272,7 @@ function PopoverEstado({ numero, estadoActual, superficies, onSelect, onToggleSu
                 onChange={event => onObservacionChange(event.target.value)}
                 placeholder="Tipo de aparato, material, clasificación, color u otro detalle..."
                 rows={2}
-                className="w-full resize-none rounded-md border border-border px-2.5 py-2 text-xs outline-none focus:border-[#087ea4] focus:ring-1 focus:ring-[#087ea4]"
+                className="w-full resize-none rounded-md border border-border px-2.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </div>
           </div>
@@ -302,7 +302,7 @@ function PopoverEstado({ numero, estadoActual, superficies, onSelect, onToggleSu
           )}
         </div>
         <div className="mt-4 flex justify-end border-t border-border pt-3">
-          <Button type="button" onClick={onClose} className="bg-[#087ea4] text-white hover:bg-[#066b8b]">
+          <Button type="button" onClick={onClose} className="bg-primary text-white hover:bg-primary/90">
             <Save className="mr-2 h-4 w-4" />Guardar y cerrar
           </Button>
         </div>
@@ -575,7 +575,7 @@ export function Odontodiagrama({ pacienteId }: OdontodiagramaProps) {
         <Button
           onClick={handleSave}
           disabled={!dirty || updateMutation.isPending}
-          className="bg-[#8DC63F] hover:bg-[#7ab535] text-white"
+          className="bg-primary hover:bg-primary/90 text-white"
         >
           {updateMutation.isPending ? (
             <span className="flex items-center gap-2">

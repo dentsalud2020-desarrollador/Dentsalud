@@ -150,7 +150,7 @@ export default function ProcedimientosPage() {
               Catálogo de tratamientos y precios de referencia · {totalActivos} activos
             </p>
           </div>
-          <Button onClick={abrirNuevo} className="bg-[#8DC63F] hover:bg-[#7ab535] text-white">
+          <Button onClick={abrirNuevo} className="bg-primary hover:bg-primary/90 text-white">
             <Plus className="h-4 w-4 mr-1" /> Nuevo procedimiento
           </Button>
         </div>
@@ -176,12 +176,12 @@ export default function ProcedimientosPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <ClipboardList className="h-4 w-4 text-[#8DC63F]" /> Lista de procedimientos
+              <ClipboardList className="h-4 w-4 text-primary" /> Lista de procedimientos
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-[#8DC63F]" /></div>
+              <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
             ) : filtrados.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-10">
                 {procedimientos.length === 0 ? "Aún no hay procedimientos registrados." : "No se encontraron procedimientos."}
@@ -273,7 +273,7 @@ export default function ProcedimientosPage() {
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <Button type="button" variant="outline" onClick={() => setEditando(null)}>Cancelar</Button>
-                    <Button type="submit" disabled={guardarMutation.isPending} className="bg-[#8DC63F] hover:bg-[#7ab535] text-white">
+                    <Button type="submit" disabled={guardarMutation.isPending} className="bg-primary hover:bg-primary/90 text-white">
                       {guardarMutation.isPending ? "Guardando..." : "Guardar"}
                     </Button>
                   </div>

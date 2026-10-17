@@ -61,9 +61,9 @@ function CitaCard({ cita, onChangeEstado, onEdit, onDelete }: {
 }) {
   const estado = cita.estado as EstadoCita;
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg border border-border hover:border-[#8DC63F]/30 hover:bg-accent/30 transition-colors">
+    <div className="flex items-start gap-3 p-3 rounded-lg border border-border hover:border-primary/30 hover:bg-accent/30 transition-colors">
       <div className="flex-shrink-0 w-12 text-center">
-        <p className="text-sm font-bold text-[#8DC63F]">{formatHora(cita.horaInicio)}</p>
+        <p className="text-sm font-bold text-primary">{formatHora(cita.horaInicio)}</p>
         <p className="text-xs text-muted-foreground">{formatHora(cita.horaFin)}</p>
       </div>
       <div className="flex-1 min-w-0">
@@ -74,7 +74,7 @@ function CitaCard({ cita, onChangeEstado, onEdit, onDelete }: {
         </div>
         {cita.pacienteDni && <p className="text-xs text-muted-foreground mt-0.5">DNI: {cita.pacienteDni}</p>}
         {cita.tipoTratamientoNombre && (
-          <p className="text-xs text-[#00AEEF] mt-0.5">{cita.tipoTratamientoNombre}</p>
+          <p className="text-xs text-primary mt-0.5">{cita.tipoTratamientoNombre}</p>
         )}
         <p className="text-xs text-muted-foreground mt-0.5">Motivo: {cita.motivo ?? "Sin motivo"}</p>
         <p className="text-xs text-muted-foreground mt-0.5">Reserva: {cita.canalReserva ?? "Sin especificar"}</p>
@@ -119,7 +119,7 @@ function CitaCard({ cita, onChangeEstado, onEdit, onDelete }: {
         )}
         {estado === "programada" && (
           <Link href={`/pacientes/${cita.pacienteId}`}>
-            <button className="text-xs px-2 py-1 bg-[#8DC63F]/10 text-[#8DC63F] rounded hover:bg-[#8DC63F]/20 transition-colors">
+            <button className="text-xs px-2 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors">
               Historia
             </button>
           </Link>
@@ -247,7 +247,7 @@ export default function CitasPage() {
             <p className="text-sm text-muted-foreground mt-0.5 capitalize">{hoy}</p>
           </div>
           <Link href="/citas/nueva">
-            <Button className="bg-[#8DC63F] hover:bg-[#7ab535] text-white">
+            <Button className="bg-primary hover:bg-primary/90 text-white">
               <Plus className="h-4 w-4 mr-1" /> Nueva Cita
             </Button>
           </Link>
@@ -279,7 +279,7 @@ export default function CitasPage() {
                 className={cn(
                   "pb-3 text-sm font-medium border-b-2 transition-colors capitalize",
                   tab === t
-                    ? "border-[#8DC63F] text-[#8DC63F]"
+                    ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -294,7 +294,7 @@ export default function CitasPage() {
           <Card className="shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-[#8DC63F]" />
+                <Calendar className="h-4 w-4 text-primary" />
                 Citas del día — {today}
               </CardTitle>
             </CardHeader>
@@ -308,7 +308,7 @@ export default function CitasPage() {
                   <Calendar className="h-10 w-10 mx-auto mb-3 opacity-30" />
                   <p className="text-sm">No hay citas programadas para hoy</p>
                   <Link href="/citas/nueva">
-                    <Button className="mt-3 bg-[#8DC63F] hover:bg-[#7ab535] text-white" size="sm">
+                    <Button className="mt-3 bg-primary hover:bg-primary/90 text-white" size="sm">
                       <Plus className="h-4 w-4 mr-1" /> Agendar cita
                     </Button>
                   </Link>
@@ -365,7 +365,7 @@ export default function CitasPage() {
 
         {tab === "todas" && (
           <Card className="shadow-sm">
-            <CardHeader className="pb-2"><CardTitle className="text-base font-semibold flex items-center gap-2"><Calendar className="h-4 w-4 text-[#8DC63F]" /> Próximas citas (desde hoy)</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base font-semibold flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" /> Próximas citas (desde hoy)</CardTitle></CardHeader>
             <CardContent>
               {loadingFiltradas ? <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : citasFiltradas.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No hay citas registradas</p> : <div className="space-y-2">{citasFiltradas.map(cita => <CitaCard key={cita.id} cita={cita} onChangeEstado={handleChangeEstado} onEdit={handleEdit} onDelete={handleDelete} />)}</div>}
             </CardContent>
@@ -376,7 +376,7 @@ export default function CitasPage() {
           <Card className="shadow-sm">
             <CardHeader className="pb-2 space-y-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <History className="h-4 w-4 text-[#8DC63F]" /> Citas pasadas
+                <History className="h-4 w-4 text-primary" /> Citas pasadas
               </CardTitle>
               <div className="flex flex-wrap items-end gap-3">
                 <div>
@@ -444,7 +444,7 @@ export default function CitasPage() {
                 <div><label className="text-sm font-medium">Estado</label><select value={editForm.estado} onChange={e => setEditForm(f => ({ ...f, estado: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background">{Object.entries(ESTADO_CONFIG).map(([value, config]) => <option key={value} value={value}>{config.label}</option>)}</select></div>
                 <div><label className="text-sm font-medium">Motivo</label><input value={editForm.motivo} onChange={e => setEditForm(f => ({ ...f, motivo: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background" /></div>
                 <div><label className="text-sm font-medium">Notas</label><textarea rows={3} value={editForm.notas} onChange={e => setEditForm(f => ({ ...f, notas: e.target.value }))} className="mt-1 w-full border border-input rounded-md px-3 py-2 text-sm bg-background resize-none" /></div>
-                <div className="flex justify-end gap-2 pt-2"><Button type="button" variant="outline" onClick={() => setEditingCita(null)}>Cancelar</Button><Button type="submit" disabled={updateCitaMutation.isPending} className="bg-[#8DC63F] hover:bg-[#7ab535] text-white">{updateCitaMutation.isPending ? "Guardando..." : "Guardar cambios"}</Button></div>
+                <div className="flex justify-end gap-2 pt-2"><Button type="button" variant="outline" onClick={() => setEditingCita(null)}>Cancelar</Button><Button type="submit" disabled={updateCitaMutation.isPending} className="bg-primary hover:bg-primary/90 text-white">{updateCitaMutation.isPending ? "Guardando..." : "Guardar cambios"}</Button></div>
               </CardContent></form>
             </Card>
           </div>

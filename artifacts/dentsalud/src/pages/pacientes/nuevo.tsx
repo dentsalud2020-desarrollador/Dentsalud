@@ -96,7 +96,7 @@ export default function NuevoPacientePage() {
           <Card className="shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <User className="h-4 w-4 text-[#8DC63F]" />
+                <User className="h-4 w-4 text-primary" />
                 Datos Personales
               </CardTitle>
             </CardHeader>
@@ -204,7 +204,7 @@ export default function NuevoPacientePage() {
             <Button
               type="submit"
               disabled={createMutation.isPending || !form.nombres || !form.apellidos}
-              className="bg-[#8DC63F] hover:bg-[#7ab535] text-white"
+              className="bg-primary hover:bg-primary/90 text-white"
             >
               {createMutation.isPending ? (
                 <span className="flex items-center gap-2">

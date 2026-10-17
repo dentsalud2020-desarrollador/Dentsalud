@@ -179,7 +179,7 @@ export default function NuevaCitaPage() {
           <Card className="shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-[#8DC63F]" />
+                <Calendar className="h-4 w-4 text-primary" />
                 Información de la Cita
               </CardTitle>
             </CardHeader>
@@ -290,7 +290,7 @@ export default function NuevaCitaPage() {
                 <Button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="flex-1 bg-[#8DC63F] hover:bg-[#7ab535] text-white"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white"
                 >
                   <Save className="h-4 w-4 mr-1" />
                   {createMutation.isPending ? "Guardando..." : "Agendar Cita"}

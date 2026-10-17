@@ -173,9 +173,9 @@ export function Consentimientos({ pacienteId, pacienteNombre, pacienteDocumento 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <FileSignature className="h-4 w-4 text-[#8DC63F]" /> Documentos firmados
+            <FileSignature className="h-4 w-4 text-primary" /> Documentos firmados
           </CardTitle>
-          <Button onClick={abrirFirma} disabled={PLANTILLAS.length === 0} className="bg-[#8DC63F] hover:bg-[#7ab535] text-white">
+          <Button onClick={abrirFirma} disabled={PLANTILLAS.length === 0} className="bg-primary hover:bg-primary/90 text-white">
             <Plus className="h-4 w-4 mr-1" /> Firmar documento
           </Button>
         </CardHeader>
@@ -246,7 +246,7 @@ export function Consentimientos({ pacienteId, pacienteNombre, pacienteDocumento 
         <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
           <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold flex items-center gap-2"><FileSignature className="h-5 w-5 text-[#8DC63F]" /> Firmar documento</h2>
+              <h2 className="text-xl font-bold flex items-center gap-2"><FileSignature className="h-5 w-5 text-primary" /> Firmar documento</h2>
               <Button variant="ghost" size="icon" onClick={() => setFirmando(false)} aria-label="Cerrar"><X className="h-5 w-5" /></Button>
             </div>
 
@@ -293,7 +293,7 @@ export function Consentimientos({ pacienteId, pacienteNombre, pacienteDocumento 
 
             <div className="flex justify-end gap-2 pb-6">
               <Button variant="outline" onClick={() => setFirmando(false)}>Cancelar</Button>
-              <Button onClick={handleFirmar} disabled={!puedeFirmar || firmarMutation.isPending} className="bg-[#8DC63F] hover:bg-[#7ab535] text-white">
+              <Button onClick={handleFirmar} disabled={!puedeFirmar || firmarMutation.isPending} className="bg-primary hover:bg-primary/90 text-white">
                 {firmarMutation.isPending ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Guardando...</> : "Firmar y guardar"}
               </Button>
             </div>

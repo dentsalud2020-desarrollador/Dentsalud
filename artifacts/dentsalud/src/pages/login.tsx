@@ -68,7 +68,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value.toLowerCase())}
-                placeholder="correo@dentsalud.com"
+                placeholder="Correo"
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}

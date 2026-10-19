@@ -4,7 +4,8 @@ import {
   useUpdateOdontodiagrama,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Save, Info } from "lucide-react";
+import { Save, Info, Box } from "lucide-react";
+import { Odontograma3D } from "./Odontograma3D";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -321,6 +322,7 @@ export function Odontodiagrama({ pacienteId }: OdontodiagramaProps) {
   const [piezas, setPiezas] = useState<Record<string, PiezaRegistro>>({});
   const [popover, setPopover] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [ver3D, setVer3D] = useState(false);
 
   const { data: odontoData, isLoading } = useGetOdontodiagrama(pacienteId, {
     query: { queryKey: getGetOdontodiagramaQueryKey(pacienteId) },
@@ -426,8 +428,24 @@ export function Odontodiagrama({ pacienteId }: OdontodiagramaProps) {
     </div>
   );
 
+  const abrir3D = () => {
+    // El 3D parte del odontodiagrama guardado: los cambios sin guardar se perderían
+    if (dirty) {
+      toast({ title: "Guarda el odontodiagrama antes de abrir la vista 3D", variant: "destructive" });
+      return;
+    }
+    setVer3D(true);
+  };
+
   return (
     <div className="space-y-5">
+      {/* Vista 3D */}
+      <div className="flex justify-end">
+        <Button variant="outline" onClick={abrir3D} className="border-primary/40 text-primary hover:bg-accent">
+          <Box className="mr-2 h-4 w-4" /> Odontodiagrama 3D
+        </Button>
+      </div>
+
       {/* Leyenda */}
       <div className="space-y-3 rounded-xl border border-border bg-white p-3">
         {GRUPOS_LEYENDA.map(group => (
@@ -602,6 +620,19 @@ export function Odontodiagrama({ pacienteId }: OdontodiagramaProps) {
             setDirty(true);
           }}
           onClose={() => setPopover(null)}
+        />
+      )}
+
+      {ver3D && (
+        <Odontograma3D
+          pacienteId={pacienteId}
+          piezas={(odontoData ?? []).map(entry => ({
+            numeroPieza: entry.numeroPieza,
+            estado: entry.estado,
+            superficies: entry.superficies,
+            observacion: entry.observacion,
+          }))}
+          onClose={() => setVer3D(false)}
         />
       )}
     </div>

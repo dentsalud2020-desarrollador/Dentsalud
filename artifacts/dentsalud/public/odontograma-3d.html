@@ -1,0 +1,537 @@
+<!doctype html><html lang="es"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Odontograma 3D COP</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: visor 3D a pantalla completa + panel clínico lateral + ficha 2D desplegable */
+/* Colores adaptados al tema verde y blanco de DentSalud */
+:root{--bg1:#f3f8ee;--bg2:#d6e3cc;--panel:#fcfdfbf0;--ink:#1b2a14;--mut:#5d6d55;--line:#cfdcc6;--acc:#5F8627;--accink:#fff;--blue:#1d5fd0;--red:#d0302a;--paper:#fff;
+--f-ui:Manrope,system-ui,sans-serif;--f-mono:"JetBrains Mono",ui-monospace,monospace}
+html,body{height:100%}
+body{margin:0;font-family:var(--f-ui);color:var(--ink);background:radial-gradient(ellipse at 45% 35%,var(--bg1),var(--bg2));overflow:hidden}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+#panel{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(360px,calc(100% - 24px));overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;backdrop-filter:blur(8px);display:flex;flex-direction:column;gap:10px}
+h1{font-size:16px;margin:0;font-weight:800;letter-spacing:-.01em}
+h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:0 0 6px;font-weight:700}
+.sub{font-size:12px;color:var(--mut);margin:2px 0 0;line-height:1.4}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+button,select{font:600 12px var(--f-ui);color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 9px;cursor:pointer}
+select{padding:5px 6px;background:var(--panel)}
+button:hover:not(:disabled){border-color:var(--acc)}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.chip{font-size:11px;padding:4px 7px}
+.chip.on.r{background:var(--red);border-color:var(--red);color:#fff}
+.chip.on.b{background:var(--blue);border-color:var(--blue);color:#fff}
+#sel{font-size:14px;font-weight:800}
+#sel small{display:block;font-weight:600;color:var(--mut);font-size:11px}
+label{font-size:12px;color:var(--mut)}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.sec{border-top:1px solid var(--line);padding-top:10px}
+#opts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px}
+textarea{width:100%;box-sizing:border-box;min-height:70px;font:12px/1.45 var(--f-mono);background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px;resize:vertical}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg1);font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap}
+#sheet{position:fixed;z-index:5;box-shadow:0 8px 28px rgba(0,0,0,.22);left:max(12px,env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(760px,calc(100% - 400px));background:var(--paper);color:#111;border-radius:12px;border:1px solid var(--line);padding:10px;overflow-x:auto}
+#sheet h2{color:#555;text-align:center;font-size:12px}
+#sheet h2{cursor:move;user-select:none;touch-action:none;padding:4px 0;margin:-4px 0 0;border-bottom:1px dashed #ddd}
+#sheet h2::before{content:"⠿ ";color:#999}
+#rz{position:absolute;right:0;bottom:0;width:28px;height:28px;z-index:3;cursor:nwse-resize;touch-action:none;display:grid;place-items:center;color:#5F8627;font:700 16px/1 system-ui;background:#eef5e8;border-top-left-radius:10px;border-bottom-right-radius:12px}
+#rz:hover{background:#dcebd0}
+.zb{position:absolute;top:6px;display:flex;gap:4px;z-index:3}.zb button{background:#fff;color:#1b2a14;border-color:#cfdcc6;padding:2px 9px;font-size:14px}
+#sheet svg{display:block;min-width:300px;width:100%;height:auto}
+#sheet .hz{fill:transparent;cursor:pointer}#sheet .hz:hover{fill:rgba(95,134,39,.25)}
+#sheet .bx{cursor:pointer}#sheet text{pointer-events:none}#sheet .sel{fill:none;stroke:#5F8627;stroke-width:2;stroke-dasharray:3 2}
+#tools{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:4px 0 6px}
+#tools button{color:#1b2a14;border-color:#cfdcc6;background:#fff}#tools button.on{background:#5F8627;border-color:#5F8627;color:#fff}
+#sheet .hint{font-size:11px;color:#555;text-align:center;margin:0 0 4px}
+.leg{font-size:11px;color:var(--mut);line-height:1.5}
+.leg b{font-family:var(--f-mono)}
+@media (max-width:900px){#panel{top:auto;height:52vh}#sheet{width:calc(100% - 24px);bottom:calc(52vh + 22px)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+
+<canvas id="c" aria-label="Modelo 3D de las arcadas dentarias con piezas FDI"></canvas>
+<div id="tip" hidden></div>
+
+<div id="sheet" hidden>
+<div class="zb" style="right:8px"><button id="zOut" title="Reducir" aria-label="Reducir ficha">−</button><button id="zIn" title="Ampliar" aria-label="Ampliar ficha">+</button></div>
+<h2 id="sheetBar" title="Arrastra para mover">Odontograma · Norma Técnica COP</h2>
+<div id="tools" role="toolbar" aria-label="Herramienta de la ficha"></div>
+<p class="hint" id="toolHint"></p>
+<div id="rz" title="Arrastra para cambiar el tamaño" aria-label="Cambiar tamaño">⤡</div>
+<svg id="og" viewBox="0 0 640 330" role="img" aria-label="Odontograma 2D"></svg>
+</div>
+
+<aside id="panel">
+ <div>
+  <h1>Odontograma 3D</h1>
+  <p class="sub">Arrastra para girar, rueda o pellizca para acercar. Toca una pieza para registrar hallazgos. Numeración FDI (dígito dos).</p>
+ </div>
+ <div>
+  <h2>Registro</h2>
+  <div class="row" id="modes"></div>
+  <p class="sub" id="modeNote"></p>
+ </div>
+ <div>
+  <h2>Vista</h2>
+  <div class="row" id="views"></div>
+  <div class="row" style="margin-top:6px">
+   <button id="tUp" class="on">Maxilar</button><button id="tLo" class="on">Mandíbula</button><button id="tSheet">Ficha 2D</button>
+  </div>
+  <label for="op" style="display:block;margin-top:8px">Encía y hueso (bájalo para ver raíces)</label>
+  <input id="op" type="range" min="10" max="100" value="100">
+  <label for="jaw" style="display:block;margin-top:4px">Apertura de la boca</label>
+  <input id="jaw" type="range" min="0" max="100" value="0">
+ </div>
+ <div class="sec">
+  <div id="sel">Ninguna pieza seleccionada</div>
+  <div id="find" class="row" style="margin-top:8px"></div>
+  <div id="opts" style="margin-top:8px"></div>
+ </div>
+ <div class="sec">
+  <h2>Especificaciones</h2>
+  <textarea id="spec" readonly aria-label="Especificaciones generadas"></textarea>
+  <label for="notes" style="display:block;margin:6px 0 4px">Notas del profesional (tipo de aparatología, material, clasificación de movilidad, color del metal…)</label>
+  <textarea id="notes"></textarea>
+ </div>
+ <div class="sec">
+  <div class="row"><button id="copy">Copiar JSON</button><button id="clear">Limpiar registro</button></div>
+  <p class="leg" style="margin-top:8px"><span style="color:var(--blue)">■ Azul</span>: tratamiento en buen estado / hallazgo · <span style="color:var(--red)">■ Rojo</span>: caries, mal estado o temporal (Disp. Gen. 7 y 8).</p>
+ </div>
+</aside>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+const BLUE="#1d5fd0",RED="#d0302a";
+/* ---------- Catálogo de hallazgos (Norma Técnica del Odontograma, COP) ---------- */
+// k: clave, n: nombre, s: siglas (opciones), st: tiene estado bueno/malo, fixed: color fijo
+const F=[
+ {k:"caries",n:"Caries",fixed:"r"},
+ {k:"rest",n:"Restauración",s:["AM","R","IV","IM","IE"],st:1},
+ {k:"restT",n:"Restauración temporal",fixed:"r"},
+ {k:"corona",n:"Corona definitiva",s:["CC","CF","CMC","3/4","4/5","7/8","CV","CJ"],st:1},
+ {k:"coronaT",n:"Corona temporal",fixed:"r"},
+ {k:"pulpar",n:"Tratamiento pulpar",s:["TC","PC","PP"],st:1},
+ {k:"ausente",n:"Diente ausente",fixed:"b"},
+ {k:"rr",n:"Remanente radicular",s:["RR"],fixed:"r"},
+ {k:"fractura",n:"Fractura",fixed:"r"},
+ {k:"imp",n:"Implante",s:["IMP"],fixed:"b"},
+ {k:"des",n:"Desgaste oclusal/incisal",s:["DES"],fixed:"b"},
+ {k:"dis",n:"Discrómico",s:["DIS"],fixed:"b"},
+ {k:"ecto",n:"Ectópico",s:["E"],fixed:"b"},
+ {k:"clav",n:"En clavija",fixed:"b"},
+ {k:"extr",n:"Extruido",fixed:"b"},
+ {k:"intr",n:"Intruido",fixed:"b"},
+ {k:"giro",n:"Giroversión",fixed:"b"},
+ {k:"migr",n:"Migración",fixed:"b"},
+ {k:"impac",n:"Impactación",s:["I"],fixed:"b"},
+ {k:"semi",n:"Semi-impactación",s:["SI"],fixed:"b"},
+ {k:"mac",n:"Macrodoncia",s:["MAC"],fixed:"b"},
+ {k:"mic",n:"Microdoncia",s:["MIC"],fixed:"b"},
+ {k:"mov",n:"Movilidad",s:["M1","M2","M3"],fixed:"b"},
+];
+const FK=Object.fromEntries(F.map(f=>[f.k,f]));
+const colorOf=(f,v)=>f.fixed?(f.fixed=="r"?RED:BLUE):(v.malo?RED:BLUE);
+
+/* ---------- Escena ---------- */
+const cv=document.getElementById("c");
+const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+R.setPixelRatio(Math.min(devicePixelRatio,2));R.outputEncoding=THREE.sRGBEncoding;
+R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+const S=new THREE.Scene(),cam=new THREE.PerspectiveCamera(38,1,1,900);
+S.add(new THREE.HemisphereLight(0xffffff,0x5d5560,.7));
+const key=new THREE.DirectionalLight(0xfff3e4,1.15);key.position.set(60,110,120);key.castShadow=true;key.shadow.mapSize.set(2048,2048);
+Object.assign(key.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:10,far:400});key.shadow.bias=-.0005;S.add(key);
+const rim=new THREE.DirectionalLight(0xcfe3ff,.5);rim.position.set(-90,30,-80);S.add(rim);
+const fill=new THREE.PointLight(0xffe8e0,.35,300);fill.position.set(0,0,90);S.add(fill);
+
+// texturas procedurales
+function noiseTex(base,amp,n,rep){const c=document.createElement("canvas");c.width=c.height=256;const x=c.getContext("2d");x.fillStyle=base;x.fillRect(0,0,256,256);
+ for(let i=0;i<n;i++){const g=128+(Math.random()-.5)*amp|0;x.fillStyle=`rgba(${g},${g},${g},.55)`;x.beginPath();x.arc(Math.random()*256,Math.random()*256,.5+Math.random()*1.8,0,7);x.fill()}
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rep[0],rep[1]);return t}
+const boneMat=new THREE.MeshStandardMaterial({color:0xdccfae,roughness:.85,bumpMap:noiseTex("#808080",120,6000,[3,14]),bumpScale:.6,side:THREE.DoubleSide});
+const gumMat=new THREE.MeshPhysicalMaterial({color:0xd9737a,roughness:.42,clearcoat:.5,clearcoatRoughness:.35,bumpMap:noiseTex("#808080",60,4000,[8,2]),bumpScale:.25,side:THREE.DoubleSide});
+const enamelTex=noiseTex("#808080",40,3000,[1,1]);
+
+const upper=new THREE.Group(),lower=new THREE.Group();S.add(upper,lower);
+
+/* ---------- Curva de arcada ---------- */
+function makeArc(scale){const f=x=>scale*(40-45*Math.pow(Math.abs(x/scale)/32,1.8));const a=[];let s=0,px=0,pz=f(0);a.push([0,pz,0]);
+ for(let x=.05;x<=40;x+=.05){const z=f(x);s+=Math.hypot(x-px,z-pz);a.push([x,z,s]);px=x;pz=z}
+ return s=>{let i=1;while(i<a.length-1&&a[i][2]<s)i++;const p=a[i-1],q=a[i],k=(s-p[2])/(q[2]-p[2]||1);return{x:p[0]+(q[0]-p[0])*k,z:p[1]+(q[1]-p[1])*k,tx:q[0]-p[0],tz:q[1]-p[1]}}}
+
+/* ---------- Mandíbula (barrido de sección elíptica) ---------- */
+(function(){
+ const Rt=[[41,24,-27,3.5,7],[40,8,-25,4,13],[37,-8,-22,5,15],[34,-16,-14,6.5,13],[32,-13,-5,7.5,13],[28,-13,5,7.5,13],[22,-13,16,7,13],[16,-13,27,7,13.5],[8,-13,35.7,7,14],[0,-13.5,40,7.8,14.5]];
+ const all=[...Rt.map(p=>[-p[0],p[1],p[2],p[3],p[4]]),...Rt.slice(0,9).reverse()],n=all.length;
+ const curve=new THREE.CatmullRomCurve3(all.map(p=>new THREE.Vector3(p[0],p[1],p[2])),false,"catmullrom",.5);
+ lower.add(sweep(curve,all,n,boneMat));
+ [-1,1].forEach(sg=>{
+  const co=new THREE.Mesh(new THREE.SphereGeometry(1,28,18),boneMat);co.scale.set(7,3.6,4.6);co.position.set(sg*40,29,-32);co.rotation.y=sg*.35;lower.add(co);
+  const cn=new THREE.Mesh(new THREE.ConeGeometry(6,20,24),boneMat);cn.scale.set(.32,1,1);cn.position.set(sg*40.5,31,-20.5);cn.rotation.x=-.18;lower.add(cn);
+ });
+})();
+function sweep(curve,prof,n,mat,N=260,M=36){
+ const pos=[],nor=[],uv=[],idx=[];let Lv=new THREE.Vector3(-1,0,0);
+ for(let r=0;r<=N;r++){const t=r/N,P=curve.getPoint(t),T=curve.getTangent(t).normalize();
+  Lv.sub(T.clone().multiplyScalar(Lv.dot(T))).normalize();const B=new THREE.Vector3().crossVectors(T,Lv).normalize();
+  const q=t*(n-1),i=Math.min(Math.floor(q),n-2);let f=q-i;f=f*f*(3-2*f);
+  let a=prof[i][3]+(prof[i+1][3]-prof[i][3])*f,b=prof[i][4]+(prof[i+1][4]-prof[i][4])*f;
+  const e=Math.min(r,N-r);if(e<8){const s=Math.sin(e/8*Math.PI/2);a=Math.max(a*s,.05);b=Math.max(b*s,.05)}
+  for(let m=0;m<=M;m++){const th=m/M*Math.PI*2,c=Math.cos(th),s=Math.sin(th);
+   pos.push(P.x+Lv.x*a*c+B.x*b*s,P.y+Lv.y*a*c+B.y*b*s,P.z+Lv.z*a*c+B.z*b*s);
+   const nv=new THREE.Vector3().addScaledVector(Lv,c/a).addScaledVector(B,s/b).normalize();nor.push(nv.x,nv.y,nv.z);uv.push(m/M,t)}}
+ for(let r=0;r<N;r++)for(let m=0;m<M;m++){const a=r*(M+1)+m,b=a+M+1;idx.push(a,b,a+1,b,b+1,a+1)}
+ const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));
+ g.setAttribute("normal",new THREE.Float32BufferAttribute(nor,3));g.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);
+ const m=new THREE.Mesh(g,mat);m.receiveShadow=m.castShadow=true;return m}
+
+/* ---------- Encía: banda festoneada a lo largo de cada arcada ---------- */
+function gum(at,len,sgnY,group){
+ // sección en "U" invertida que envuelve los cuellos dentarios; festones entre piezas
+ const N=220,M=28,pos=[],idx=[];
+ for(let side of[-1,1]){const base=pos.length/3;
+  for(let r=0;r<=N;r++){const s=r/N*len,P=at(s);let nx=-P.tz,nz=P.tx;const l=Math.hypot(nx,nz);nx/=l;nz/=l;if(nx*P.x+nz*(P.z-12)<0){nx=-nx;nz=-nz}
+   const X=side*P.x,NX=side*nx;
+   const end=Math.min(1,(len-s)/6);
+   for(let m=0;m<=M;m++){const th=m/M*Math.PI;const c=Math.cos(th),sn=Math.sin(th);
+    const wid=6.2*end+.3,dep=9;
+    const sc=1+.5*Math.pow(Math.abs(Math.cos(s/7.1*Math.PI)),6)*sn; // papilas
+    const off=c*wid,h=-sgnY*(dep*(1-sn)-2.2*sc*sn);
+    pos.push(X+NX*off,h-sgnY*1.2,P.z+nz*off)}}
+  for(let r=0;r<N;r++)for(let m=0;m<M;m++){const a=base+r*(M+1)+m,b=a+M+1;side>0?idx.push(a,b,a+1,b,b+1,a+1):idx.push(a,a+1,b,b,a+1,b+1)}}
+ const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+ const m=new THREE.Mesh(g,gumMat);m.receiveShadow=true;group.add(m);return m}
+
+/* ---------- Geometría dental anatómica ---------- */
+// [nombre, mesiodistal, altura corona, vestíbulo-lingual, tipo, largo raíz, nº raíces]
+const LOW=[["Incisivo central",5.4,9,6,"i",12.5,1],["Incisivo lateral",5.9,9.5,6.4,"i",14,1],["Canino",6.9,11,7.9,"c",16,1],["Primer premolar",7,8.5,7.6,"p",14,1],["Segundo premolar",7.1,8,8.1,"p",14.5,1],["Primer molar",11.1,7.5,10.4,"m",13,2],["Segundo molar",10.5,7,10,"m",13,2],["Tercer molar",10,6.8,9.6,"m",11,2]];
+const UPP=[["Incisivo central",8.6,10.5,7,"i",13,1],["Incisivo lateral",6.6,9,6.2,"i",13,1],["Canino",7.6,10,8,"c",17,1],["Primer premolar",7.1,8.5,9,"p",14,2],["Segundo premolar",6.6,8,9,"p",14,1],["Primer molar",10.2,7.5,11,"m",12.5,3],["Segundo molar",9,7,11,"m",12,3],["Tercer molar",8.6,6.5,10,"m",11,3]];
+
+function cuspMap(tp,x,z,w,bl,nR){ // relieve oclusal normalizado 0..1
+ const g=(cx,cz,r)=>Math.exp(-((x-cx)**2+(z-cz)**2)/(r*r));
+ if(tp=="p")return Math.max(g(0,bl*.2,w*.32),.85*g(0,-bl*.22,w*.28))-.35*Math.exp(-(z*z)/(bl*bl*.012));
+ if(tp=="m"){let v=0;const c=[[-.26,-.22,1],[.0,-.24,.95],[.28,-.2,.9],[-.24,.22,1],[.24,.22,.95]];
+  (nR==3?c.filter((_,i)=>i!=1):c).forEach(([a,b,k])=>v=Math.max(v,k*g(a*w,b*bl,w*.2)));
+  return v-.3*Math.exp(-(z*z)/(bl*bl*.01))-.2*Math.exp(-(x*x)/(w*w*.006))}
+ return 0}
+function crownGeo(tp,w,h,bl,nR){
+ const g=new THREE.SphereGeometry(1,48,36),p=g.attributes.position;
+ for(let i=0;i<p.count;i++){let ux=p.getX(i),uy=p.getY(i),uz=p.getZ(i);
+  const t=(uy+1)/2; // 0 cervical .. 1 oclusal
+  const se=(v,e)=>Math.sign(v)*Math.pow(Math.abs(v),e);
+  let x=se(ux,.75)*w/2,z=se(uz,.8)*bl/2;
+  const bulge=.8+.2*Math.sin(Math.min(t*1.25,1)*Math.PI*.85); // convexidad, cuello estrecho
+  x*=bulge;z*=bulge*(.92+.08*t);
+  let y=t*h;
+  if(tp=="i"){z*=1-.78*Math.pow(t,1.6);x*=1+.12*t;z+=bl*.08*t*t;} // borde incisal fino, cara vestibular convexa
+  else if(tp=="c"){const k=Math.pow(t,1.5);x*=1-.55*k;z*=1-.45*k;y+=h*.1*Math.exp(-(x*x)/(w*w*.04))*t;} // cúspide
+  else{ // posteriores: superficie oclusal con cúspides y surcos
+   if(t>.72){const c=cuspMap(tp,x,z,w,bl,nR);y=Math.min(y,h*.8+h*.2*c)}}
+  p.setXYZ(i,x,y,z)}
+ g.computeVertexNormals();return g}
+function rootGeo(r0,l,bend){const g=new THREE.CylinderGeometry(r0,r0*.28,l,22,10,true),p=g.attributes.position;
+ for(let i=0;i<p.count;i++){const y=p.getY(i),t=(l/2-y)/l;p.setX(i,p.getX(i)+bend*t*t);p.setY(i,y-l/2+.6)}
+ g.computeVertexNormals();return g}
+
+/* ---------- Construcción de piezas ---------- */
+const teeth={},pick=[];
+function buildArch(T,quadR,quadL,group,sgnY,at){
+ let total=0;
+ [1,-1].forEach(sg=>{let s0=0;
+  T.forEach((d,i)=>{
+   const id=(sg>0?quadL:quadR)*10+i+1,[nm,w,h,bl,tp,rl,nR]=d,P=at(s0+w/2);s0+=w;total=Math.max(total,s0);
+   let nx=-P.tz,nz=P.tx;const l=Math.hypot(nx,nz);nx/=l;nz/=l;if(nx*P.x+nz*(P.z-12)<0){nx=-nx;nz=-nz}
+   const g=new THREE.Group();g.position.set(sg*P.x,0,P.z);g.rotation.y=Math.atan2(nx*sg,nz);const Pm=at(s0-w),ph=g.rotation.y,ms=Math.sign((sg*Pm.x-sg*P.x)*Math.cos(ph)-(Pm.z-P.z)*Math.sin(ph))||1;
+   if(sgnY<0)g.scale.y=-1; // maxilar: coronas hacia abajo
+   const curve=(tp=="i"?.12:tp=="c"?.08:.03); // inclinación vestibular
+   g.rotateX(sgnY>0?-curve:curve);
+   const tint=new THREE.Color().setHSL(.11,.32+Math.random()*.06,.88-Math.random()*.03);
+   const mat=new THREE.MeshPhysicalMaterial({color:tint,roughness:.22,clearcoat:.7,clearcoatRoughness:.15,sheen:0,bumpMap:enamelTex,bumpScale:.05});
+   const rmat=new THREE.MeshStandardMaterial({color:0xdcc79a,roughness:.75});
+   const cr=new THREE.Group(),rt=new THREE.Group(),deco=new THREE.Group(),screw=new THREE.Group();g.add(cr,rt,deco,screw);
+   const cm=new THREE.Mesh(crownGeo(tp,w,h,bl,nR),mat);cr.add(cm);
+   const root=(x,z,r,l,b)=>{const m=new THREE.Mesh(rootGeo(r,l,b),rmat);m.position.set(x,0,z);rt.add(m)};
+   if(nR==1)root(0,0,Math.min(w,bl)*.36,rl,0);
+   else if(nR==2&&tp=="p"){root(0,bl*.2,w*.24,rl,0);root(0,-bl*.2,w*.24,rl,0)}
+   else if(nR==2){root(-w*.25,0,w*.2,rl,-1.2);root(w*.25,0,w*.19,rl*.95,1)}
+   else{root(-w*.24,bl*.2,w*.17,rl*.9,-1);root(w*.24,bl*.2,w*.16,rl*.85,1);root(0,-bl*.26,w*.2,rl,0)}
+   const all=[...cr.children,...rt.children];all.forEach(m=>{m.castShadow=true;m.receiveShadow=true;m.userData.id=id;pick.push(m)});
+   group.add(g);
+   teeth[id]={id,nm,tp,w,h,bl,nR,g,mat,rmat,cr,rt,deco,screw,tint:tint.clone(),upper:sgnY<0,sg,ms};
+  })});
+ return total}
+const atL=makeArc(1),atU=makeArc(1.07);
+const lenL=buildArch(LOW,4,3,lower,1,atL),lenU=buildArch(UPP,1,2,upper,-1,atU);
+const gumL=gum(atL,lenL+1,1,lower),gumU=gum(atU,lenU+1,-1,upper);
+// paladar / base maxilar
+(function(){const sh=new THREE.Shape();const pts=[];for(let s=0;s<=lenU+1;s+=1){const P=atU(s);pts.push([P.x,P.z])}
+ sh.moveTo(-pts[pts.length-1][0],pts[pts.length-1][1]);for(let i=pts.length-1;i>=0;i--)sh.lineTo(-pts[i][0],pts[i][1]);for(const q of pts)sh.lineTo(q[0],q[1]);
+ const g=new THREE.ExtrudeGeometry(sh,{depth:6,bevelEnabled:true,bevelThickness:3,bevelSize:4,bevelSegments:4,curveSegments:24});
+ g.rotateX(Math.PI/2);const m=new THREE.Mesh(g,gumMat);m.position.y=16;m.scale.set(.96,1,.96);upper.add(m);})();
+upper.position.y=13;
+const hinge=new THREE.Group();hinge.position.set(0,27,-32);S.add(hinge);hinge.add(lower);lower.position.set(0,-28,32);
+/* ---------- Caras dentarias ---------- */
+const LES=["caries","rest","restT","fractura","des"];let moving=null,placing=false;
+const FACE={O:"Oclusal",I:"Incisal",V:"Vestibular",L:"Lingual",P:"Palatina",M:"Mesial",D:"Distal",R:"Raíz"};
+const faceNames=t=>[t.tp=="i"||t.tp=="c"?"I":"O","V",t.upper?"P":"L","M","D"];
+function facePt(t,F){const h=t.h,w=t.w,b=t.bl;return{O:[[0,h*.88,0],[0,1,0]],I:[[0,h*.9,0],[0,1,0]],V:[[0,h*.45,b*.47],[0,0,1]],L:[[0,h*.45,-b*.47],[0,0,-1]],P:[[0,h*.45,-b*.47],[0,0,-1]],M:[[t.ms*w*.47,h*.45,0],[t.ms,0,0]],D:[[-t.ms*w*.47,h*.45,0],[-t.ms,0,0]],R:[[0,-h*.6,b*.38],[0,0,1]]}[F]}
+function classify(t,p){if(p[1]<0)return"R";const y=p[1]/t.h,ant=t.tp=="i"||t.tp=="c";if(y>(ant?.86:.76))return ant?"I":"O";
+ const ax=Math.abs(p[0])/(t.w/2),az=Math.abs(p[2])/(t.bl/2);if(az>=ax)return p[2]>0?"V":(t.upper?"P":"L");return p[0]*t.ms>0?"M":"D"}
+function ensureL(t,v){if(!v.L||!v.L.length){const F0=faceNames(t)[0],[p,n]=facePt(t,F0);v.L=[{p,n,f:F0}];v.a=0}if(v.a==null||v.a>=v.L.length)v.a=0;return v}
+
+/* ---------- Estado / registro ---------- */
+const store={inicial:{},evolucion:{}};let mode="inicial",locked=false;
+const rec=()=>store[mode];
+const ed=()=>!(mode=="inicial"&&locked);
+
+/* ---------- Conexión con DentSalud ----------
+   La ventana principal envía el odontodiagrama del paciente ("odo3d:cargar") y este visor
+   devuelve cada cambio ("odo3d:cambio"): el detalle 3D completo y el estado principal de cada
+   pieza, para que el odontodiagrama de la ficha del paciente quede igual. */
+const PERM=[1,2,3,4].flatMap(q=>[1,2,3,4,5,6,7,8].map(i=>q*10+i));
+const A_SISTEMA={caries:"caries",rest:"restauracion",restT:"restauracion_temporal",corona:"corona_definitiva",coronaT:"corona_temporal",pulpar:"tratamiento_pulpar",ausente:"ausente",rr:"remanente_radicular",fractura:"fractura",imp:"implante",des:"desgaste",dis:"discromico",ecto:"ectopico",clav:"clavija",extr:"extruido",intr:"intruido",giro:"giroversion",migr:"migracion",impac:"impactacion",semi:"semi_impactacion",mac:"macrodoncia",mic:"microdoncia",mov:"movilidad"};
+const DESDE_SISTEMA=Object.fromEntries(Object.entries(A_SISTEMA).map(([k,v])=>[v,k]));
+// Si una pieza tiene varios hallazgos, este orden decide cuál se muestra en el odontodiagrama principal
+const PRIORIDAD=["ausente","imp","rr","fractura","caries","corona","coronaT","pulpar","rest","restT","des","dis","ecto","clav","extr","intr","giro","migr","impac","semi","mac","mic","mov"];
+const CARA_A_SUP={O:"oclusal",I:"oclusal",V:"vestibular",L:"lingual",P:"lingual",M:"mesial",D:"distal"};
+let sistema={},cargado=false,ultimoEnvio="";
+// El registro que se sincroniza: el inicial mientras está abierto; la evolución una vez cerrado
+const recSync=()=>store[locked?"evolucion":"inicial"];
+const ordenSup=s=>(s||"").split(",").filter(Boolean).sort().join(",");
+function proyectar(f){const k=PRIORIDAD.find(x=>f&&f[x]);if(!k)return{estado:"sano",superficies:""};
+ let sup="";if(k=="caries"&&f.caries.L)sup=[...new Set(f.caries.L.map(l=>CARA_A_SUP[l.f]).filter(Boolean))].sort().join(",");
+ return{estado:A_SISTEMA[k],superficies:sup}}
+// Las piezas cambiadas desde el odontodiagrama principal se actualizan aquí; las demás conservan su detalle 3D
+function reconciliar(){const r=recSync();
+ PERM.forEach(id=>{const t=teeth[id],s=sistema[id]||{estado:"sano"},sup=ordenSup(s.superficies),p=proyectar(r[id]);
+  if(p.estado==s.estado&&(s.estado!="caries"||p.superficies==sup))return;
+  const k=DESDE_SISTEMA[s.estado];
+  if(!k){delete r[id];return} // sano, o un estado que no existe en el modelo 3D
+  const d=FK[k],v={s:d.s?d.s[0]:null,malo:false};
+  if(LES.includes(k)){const FF={oclusal:faceNames(t)[0],vestibular:"V",lingual:t.upper?"P":"L",mesial:"M",distal:"D"};
+   const caras=k=="caries"&&sup?sup.split(",").map(c=>FF[c]).filter(Boolean):[faceNames(t)[0]];
+   v.L=caras.map(Fc=>{const [pp,n]=facePt(t,Fc);return{p:pp,n,f:Fc}});v.a=0}
+  r[id]={[k]:v}})}
+function piezasParaSistema(){const r=recSync(),out=[];
+ PERM.forEach(id=>{const s=sistema[id],p=proyectar(r[id]);
+  // Conserva los estados del sistema que el modelo 3D no representa (p. ej. aparato fijo, sellante)
+  if(!r[id]&&s&&s.estado!="sano"&&!DESDE_SISTEMA[s.estado])return;
+  out.push({numeroPieza:String(id),estado:p.estado,superficies:p.superficies||null,observacion:(s&&s.observacion)||null})});
+ return out}
+const datosActuales=()=>({version:1,store,locked,notes:document.getElementById("notes").value});
+const save=()=>{if(!cargado)return;const datos=datosActuales(),txt=JSON.stringify(datos);if(txt==ultimoEnvio)return;ultimoEnvio=txt;
+ parent.postMessage({type:"odo3d:cambio",datos:JSON.parse(txt),piezas:piezasParaSistema()},location.origin)};
+
+/* ---------- Representación 3D de hallazgos ---------- */
+const M=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.35},o));
+function render3D(id){
+ const t=teeth[id],f=rec()[id]||{};t.deco.clear();t.screw.clear();
+ t.mat.color.copy(t.tint);t.mat.metalness=0;t.mat.roughness=.22;t.mat.transparent=false;t.mat.opacity=1;
+ t.rmat.color.set(0xdcc79a);t.cr.visible=t.rt.visible=true;t.cr.rotation.set(0,0,0);t.g.position.y=0;
+ const top=t.h*.92,add=m=>{t.deco.add(m);return m};
+ if(f.dis)t.mat.color.set(0xb9a27a);
+ t.cr.scale.y=1;
+ const k=f.mac?1.15:f.mic?.82:1;t.cr.scale.x=t.cr.scale.z=k;
+ if(f.clav){t.cr.scale.x*=.78}
+ LES.forEach(k=>{if(!f[k])return;const v=ensureL(t,f[k]),c=colorOf(FK[k],v),sz=Math.min(t.w,t.bl)*.2;
+  const em=(col,x)=>M(col,{emissive:col,emissiveIntensity:x});
+  const P3=v.L.map(l=>({P:new THREE.Vector3(...l.p),n:new THREE.Vector3(...l.n).normalize()}));
+  const tube=(a,b,r,mat)=>{const d=b.clone().sub(a),len=d.length();if(len<.01)return;const m=add(new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,10),mat));m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize())};
+  const ball=(P,r,mat)=>{const b=add(new THREE.Mesh(new THREE.SphereGeometry(r,12,10),mat));b.position.copy(P)};
+  if(k=="fractura"){const mat=em(RED,.7);
+   if(P3.length==1){const {P,n}=P3[0],a=new THREE.Vector3(0,1,0).cross(n);if(a.lengthSq()<.01)a.set(1,0,0);a.normalize().applyAxisAngle(n,.6).multiplyScalar(t.h*.35);
+    const A=P.clone().add(a).addScaledVector(n,.2),B=P.clone().sub(a).addScaledVector(n,.2);tube(A,B,.3,mat);ball(A,.3,mat);ball(B,.3,mat)}
+   else P3.forEach((q,i)=>{const A=q.P.clone().addScaledVector(q.n,.2);ball(A,.3,mat);if(i)tube(P3[i-1].P.clone().addScaledVector(P3[i-1].n,.2),A,.3,mat)});return}
+  const act=i=>moving==k&&t.id==sel&&i==v.a;
+  const core=k=="caries"?M(0x3b1410,{roughness:.9}):k=="rest"?M(c,{roughness:.3,emissive:c,emissiveIntensity:.15}):k=="des"?M(0xcdbf9e,{roughness:.12,metalness:.1}):null;
+  P3.forEach(({P,n},i)=>{const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),n);
+   if(core){const b=add(new THREE.Mesh(new THREE.SphereGeometry(1,20,14),core));b.scale.set(sz,sz,k=="des"?.25:.5);b.quaternion.copy(q);b.position.copy(P)}
+   const rc=k=="des"?BLUE:c,r=add(new THREE.Mesh(new THREE.TorusGeometry(sz*1.15,act(i)?.38:.24,8,32),em(rc,act(i)?.9:.45)));r.quaternion.copy(q);r.position.copy(P).addScaledVector(n,.25);
+   // continuidad entre superficies comprometidas (p. ej. MO, MOD)
+   if(i&&k!="des"){const A=P3[i-1].P.clone().addScaledVector(P3[i-1].n,.15),B=P.clone().addScaledVector(n,.15);tube(A,B,k=="restT"?.3:sz*.75,k=="restT"?em(RED,.5):core)}})});
+ if(f.corona){const s=f.corona.s;if(["CC","CF","3/4","4/5","7/8"].includes(s)){t.mat.color.set(0xd4a63a);t.mat.metalness=.9;t.mat.roughness=.25}else{t.mat.color.set(0xf4f1ea);t.mat.roughness=.08}
+  const c=colorOf(FK.corona,f.corona),r=add(new THREE.Mesh(new THREE.TorusGeometry(Math.max(t.w,t.bl)*.56,.35,10,48),M(c,{emissive:c,emissiveIntensity:.5})));r.rotation.x=Math.PI/2;r.position.y=.6;r.scale.z=t.bl/t.w}
+ if(f.coronaT){t.mat.color.set(0xe9e4d8);t.mat.roughness=.6;const r=add(new THREE.Mesh(new THREE.TorusGeometry(Math.max(t.w,t.bl)*.56,.35,10,48),M(RED,{emissive:RED,emissiveIntensity:.5})));r.rotation.x=Math.PI/2;r.position.y=.6}
+ if(f.pulpar){const c=colorOf(FK.pulpar,f.pulpar);t.rmat.color.set(0xc9b48a);t.rt.children.forEach(rm=>{const l=add(new THREE.Mesh(new THREE.CylinderGeometry(.35,.2,rm.geometry.parameters.height*.95,8),M(c,{emissive:c,emissiveIntensity:.6})));l.position.set(rm.position.x,-rm.geometry.parameters.height/2+.6,rm.position.z)})}
+ if(f.rr){t.cr.visible=false;t.rmat.color.set(0xb88a6a);label(t,"RR",RED,-6)}
+ if(f.imp){t.rt.visible=false;const sc=new THREE.Mesh(new THREE.CylinderGeometry(1.9,1.4,11,24),M(0x9aa1a8,{metalness:.95,roughness:.3}));sc.position.y=-5.2;t.screw.add(sc);
+  for(let i=0;i<9;i++){const th=new THREE.Mesh(new THREE.TorusGeometry(1.9-i*.05,.28,6,24),M(0x8a9198,{metalness:.95,roughness:.35}));th.rotation.x=Math.PI/2;th.position.y=-1-i*1.15;t.screw.add(th)}}
+ if(f.extr)t.g.position.y=(t.upper?-1:1)*2.2;
+ if(f.intr)t.g.position.y=(t.upper?1:-1)*2.2;
+ if(f.giro)t.cr.rotation.y=.45;
+ if(f.ausente){t.cr.visible=t.rt.visible=false;const c=colorOf(FK.ausente,f.ausente);[1,-1].forEach(s=>{const b=add(new THREE.Mesh(new THREE.BoxGeometry(t.w*1.2,.8,.8),M(c,{emissive:c,emissiveIntensity:.6})));b.rotation.z=s*.8;b.position.y=t.h*.5})}
+ if(f.impac||f.semi){t.g.position.y=(t.upper?1:-1)*(f.impac?9:4)}
+ const sig=siglas(id).filter(x=>x[0]!="RR");if(sig.length)label(t,sig.map(x=>x[0]).join(" "),sig[0][1],t.h+5);
+}
+function label(t,txt,col,y){const c=document.createElement("canvas");c.width=256;c.height=96;const x=c.getContext("2d");
+ x.fillStyle="rgba(255,255,255,.92)";x.beginPath();x.roundRect?x.roundRect(4,14,248,68,14):x.rect(4,14,248,68);x.fill();
+ x.font="800 44px JetBrains Mono, monospace";x.fillStyle=col;x.textAlign="center";x.textBaseline="middle";x.fillText(txt,128,50);
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));sp.scale.set(8,3,1);sp.position.y=y;sp.renderOrder=9;t.deco.add(sp)}
+function siglas(id){const f=rec()[id]||{},o=[];
+ for(const k in f){const d=FK[k];if(!d||!d.s||k=="rr")continue;o.push([f[k].s||d.s[0],colorOf(d,f[k])])}
+ if(f.rr)o.push(["RR",RED]);return o}
+
+/* ---------- Panel ---------- */
+let sel=null,hov=null;
+const $=s=>document.getElementById(s);
+function refresh(){
+ const t=sel&&teeth[sel],f=t?(rec()[sel]||{}):{};
+ $("sel").innerHTML=t?`Pieza ${t.id} · ${t.nm}<small>${t.upper?"Maxilar superior":"Mandíbula"} · ${t.id%10<4?"anterior":"posterior"}</small>`:"Ninguna pieza seleccionada<small>Toca un diente en el modelo</small>";
+ const fd=$("find");fd.innerHTML="";
+ F.forEach(d=>{const b=document.createElement("button");b.className="chip"+(f[d.k]?" on "+(colorOf(d,f[d.k])==RED?"r":"b"):"");b.textContent=d.n;b.disabled=!t||!ed()||(!!f.ausente&&d.k!="ausente");if(f.ausente&&d.k!="ausente")b.title="No aplica: la pieza está registrada como ausente";
+  b.onclick=()=>{const r=rec();r[sel]=r[sel]||{};if(r[sel][d.k])delete r[sel][d.k];else{if(d.k=="ausente"){r[sel]={};if(moving)moving=null}r[sel][d.k]={s:d.s?d.s[0]:null,malo:false}};if(!Object.keys(r[sel]).length)delete r[sel];commit(sel)};fd.appendChild(b)});
+ const op=$("opts");op.innerHTML="";
+ if(t)for(const k in f){const d=FK[k];if(!(d.s&&d.s.length>1)&&!d.st&&!LES.includes(k))continue;
+  const w=document.createElement("span");w.style.cssText="display:flex;gap:4px;align-items:center";w.innerHTML=`<b>${d.n}:</b>`;
+  if(d.s&&d.s.length>1){const s=document.createElement("select");s.id="s_"+k;s.disabled=!ed();d.s.forEach(v=>s.add(new Option(v,v)));s.value=f[k].s;s.onchange=()=>{f[k].s=s.value;commit(sel)};w.appendChild(s)}
+  if(d.st){const b=document.createElement("button");b.className="chip";b.disabled=!ed();b.style.color=f[k].malo?RED:BLUE;b.textContent=f[k].malo?"Mal estado":"Buen estado";b.onclick=()=>{f[k].malo=!f[k].malo;commit(sel)};w.appendChild(b)}
+  if(LES.includes(k)){const v=ensureL(t,f[k]);w.style.flexWrap="wrap";
+   faceNames(t).concat(k=="fractura"?["R"]:[]).forEach(F=>{const i=v.L.findIndex(l=>l.f==F),b=document.createElement("button");b.className="chip"+(i>=0?" on "+(colorOf(d,v)==RED?"r":"b"):"");
+    b.textContent=F;b.title=FACE[F]+(i==v.a?" (activa)":"");if(i==v.a)b.style.textDecoration="underline";b.disabled=!ed();
+    b.onclick=()=>{if(i>=0){if(v.a==i&&v.L.length>1){v.L.splice(i,1);v.a=0}else v.a=i}else{const [p,n]=facePt(t,F);v.L.push({p,n,f:F});v.a=v.L.length-1}commit(sel)};w.appendChild(b)});
+   const m=document.createElement("button");m.className="chip"+(moving==k?" on":"");m.textContent=moving==k?"Listo":k=="fractura"?"Dibujar línea":"Mover en el diente";m.disabled=!ed();
+   m.onclick=()=>{moving=moving==k?null:k;commit(sel)};w.appendChild(m);
+   if(moving==k){const p=document.createElement("small");p.style.cssText="width:100%;color:var(--mut)";p.textContent=k=="fractura"?"Traza la línea arrastrando sobre la corona o la raíz (baja la opacidad de la encía para ver la raíz).":`Arrastra sobre la corona para ubicar la lesión activa (${FACE[v.L[v.a].f]}). Toca una cara para añadirla; tócala de nuevo para quitarla.`;w.appendChild(p)}}
+  op.appendChild(w)}
+ // especificaciones (Disp. Gen. 9 y 10)
+ const L=[];Object.keys(rec()).sort((a,b)=>a-b).forEach(id=>{const f=rec()[id];
+  L.push(`${id}: `+Object.keys(f).map(k=>{const d=FK[k],v=f[k];return d.n+(v.L?` [${[...new Set(v.L.map(l=>FACE[l.f]))].join(", ")}]`:"")+(v.s&&!["RR","IMP","DES","DIS","E","I","SI","MAC","MIC"].includes(v.s)?` (${v.s})`:"")+(d.st?(v.malo?" – mal estado":" – buen estado"):"")}).join("; "))});
+ $("spec").value=L.length?L.join("\n"):"Sin hallazgos registrados.";
+ Object.values(teeth).forEach(x=>{if(!x.cr.visible&&!x.rt.visible)return;x.mat.emissive.set(x.id==sel?0x2a6fa8:x.id==hov?0x1c4468:0)});
+ drawSheet();save()}
+function commit(id){render3D(id);refresh()}
+function renderAll(){Object.keys(teeth).forEach(render3D);refresh()}
+
+// modos inicial / evolución (Disp. Gen. 3, 4, 5)
+function modesUI(){const m=$("modes");m.innerHTML="";
+ [["inicial","Odontograma inicial"],["evolucion","Evolución"]].forEach(([k,n])=>{const b=document.createElement("button");b.textContent=n;b.className=mode==k?"on":"";b.onclick=()=>{mode=k;modesUI();renderAll()};m.appendChild(b)});
+ if(mode=="inicial"){const b=document.createElement("button");b.textContent=locked?"Inicial cerrado ✓":"Cerrar inicial";b.disabled=locked;b.onclick=()=>{if(b.dataset.c){locked=true;store.evolucion=JSON.parse(JSON.stringify(store.inicial));modesUI();refresh()}else{b.dataset.c=1;b.textContent="Confirmar cierre"}};m.appendChild(b)}
+ $("modeNote").textContent=mode=="inicial"?(locked?"El odontograma inicial es inalterable. Registra cambios en Evolución.":"Registra solo lo observado en el examen, sin plan de tratamiento. Se sincroniza con el odontodiagrama de la ficha."):(locked?"Registro de la evolución de los tratamientos. Se sincroniza con el odontodiagrama de la ficha.":"Registro de la evolución. Se sincroniza con la ficha después de cerrar el odontograma inicial.");}
+
+/* ---------- Ficha 2D (gráfico de la norma, Anexo II) ---------- */
+let tool="sel";
+const TOOLS=[["sel","Seleccionar"],["caries","Caries"],["rest","Restauración"],["restT","Rest. temporal"],["fractura","Fractura"],["des","Desgaste"],["ausente","Ausente"]];
+function toolsUI(){const b=$("tools");b.innerHTML="";TOOLS.forEach(([k,n])=>{const e=document.createElement("button");e.className="chip"+(tool==k?" on":"");e.textContent=n;
+ e.onclick=()=>{tool=k;toolsUI()};b.appendChild(e)});
+ $("toolHint").textContent=tool=="sel"?"Toca una pieza o su recuadro para seleccionarla y editarla en el panel.":tool=="ausente"?"Toca una pieza para marcarla o desmarcarla como ausente.":`Toca una cara de la corona${tool=="fractura"?" o la raíz":""} para añadir o quitar ${TOOLS.find(x=>x[0]==tool)[1].toLowerCase()} en esa zona.`}
+function sheetClick(id,F){id=+id;sel=id;const t=teeth[id],r=rec();
+ if(tool=="sel"||!F||!ed()){moving=null;refresh();return}
+ if(tool=="ausente"){if(r[id]&&r[id].ausente)delete r[id];else r[id]={ausente:{s:null,malo:false}};moving=null;commit(id);return}
+ if(r[id]&&r[id].ausente){refresh();return}
+ if(F=="R"&&tool!="fractura"){refresh();return}
+ r[id]=r[id]||{};const v=r[id][tool];
+ if(!v){const [p,n]=facePt(t,F);r[id][tool]={s:FK[tool].s?FK[tool].s[0]:null,malo:false,L:[{p,n,f:F}],a:0}}
+ else{ensureL(t,v);const i=v.L.findIndex(l=>l.f==F);
+  if(i>=0){v.L.splice(i,1);v.a=0;if(!v.L.length)delete r[id][tool]}else{const [p,n]=facePt(t,F);v.L.push({p,n,f:F});v.a=v.L.length-1}}
+ if(!Object.keys(r[id]).length)delete r[id];commit(id)}
+$("og").addEventListener("click",e=>{const el=e.target.closest("[data-id]");if(el)sheetClick(el.dataset.id,el.dataset.f)});
+function drawSheet(){if($("sheet").hidden)return;
+ const U=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28],L=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+ const cw=36,x0=32;let s="";
+ const box=(x,y,id)=>{const sg=siglas(id).map(a=>`<tspan fill="${a[1]}">${a[0]}</tspan>`).join(" ");
+  return `<rect class="bx" data-id="${id}" x="${x}" y="${y}" width="${cw}" height="22" fill="#fff" stroke="#111" stroke-width="1.2"/><text x="${x+cw/2}" y="${y+15}" font-size="${sg.length>60?7:9}" font-family="monospace" font-weight="700" text-anchor="middle">${sg}</text>`};
+ const tooth=(x,y,id,up)=>{const f=rec()[id]||{},cx=x+cw/2,d=up?-1:1,cy=y;let g="";
+  const rootTop=cy+d*12,apex=cy+d*44,post=id%10>3;
+  if(post&&id%10>5)g+=`<path d="M${cx-11} ${rootTop}L${cx-6} ${apex}L${cx} ${rootTop+d*8}L${cx+6} ${apex}L${cx+11} ${rootTop}" fill="none" stroke="#111" stroke-width="1.2"/>`;
+  else g+=`<path d="M${cx-10} ${rootTop}L${cx} ${apex}L${cx+10} ${rootTop}" fill="none" stroke="#111" stroke-width="1.2"/>`;
+  g+=`<rect x="${cx-12}" y="${cy-11}" width="24" height="22" rx="9" fill="#fff" stroke="#111" stroke-width="1.2"/>`;
+  if(post)g+=`<rect x="${cx-6}" y="${cy-5}" width="12" height="10" fill="none" stroke="#111"/><line x1="${cx}" y1="${cy-5}" x2="${cx}" y2="${cy+5}" stroke="#111"/><line x1="${cx-6}" y1="${cy}" x2="${cx+6}" y2="${cy}" stroke="#111"/>`;
+  else g+=`<path d="M${cx-12} ${cy}L${cx-5} ${cy-6}L${cx+5} ${cy-6}L${cx+12} ${cy}L${cx+5} ${cy+6}L${cx-5} ${cy+6}Z" fill="none" stroke="#111"/>`;
+  const mx=[1,4].includes(id/10|0)?1:-1,FO={O:[0,0],I:[0,0],V:[0,d*7],L:[0,-d*7],P:[0,-d*7],M:[mx*8,0],D:[-mx*8,0],R:[0,d*26]};
+  LES.forEach(k=>{if(!f[k])return;const c=colorOf(FK[k],f[k]);[...new Map((f[k].L||[{f:"O"}]).map(l=>[l.f,l])).values()].forEach(l=>{const [ox,oy]=FO[l.f]||[0,0];
+   g+=k=="des"?"":k=="fractura"?`<line x1="${cx+ox-7}" y1="${cy+oy+7}" x2="${cx+ox+7}" y2="${cy+oy-7}" stroke="${RED}" stroke-width="2.4"/>`:k=="restT"?`<ellipse cx="${cx+ox}" cy="${cy+oy}" rx="4" ry="3.5" fill="none" stroke="${RED}" stroke-width="1.8"/>`:`<ellipse cx="${cx+ox}" cy="${cy+oy}" rx="4" ry="3.5" fill="${k=="caries"?RED:c}"/>`})});
+  if(f.corona)g+=`<circle cx="${cx}" cy="${cy}" r="15" fill="none" stroke="${colorOf(FK.corona,f.corona)}" stroke-width="2.2"/>`;
+  if(f.coronaT)g+=`<circle cx="${cx}" cy="${cy}" r="15" fill="none" stroke="${RED}" stroke-width="2.2"/>`;
+  if(f.pulpar)g+=`<line x1="${cx}" y1="${rootTop}" x2="${cx}" y2="${apex-d*3}" stroke="${colorOf(FK.pulpar,f.pulpar)}" stroke-width="2.5"/>`;
+  if(f.rr)g+=`<text x="${cx}" y="${cy+d*30}" font-size="10" font-weight="800" fill="${RED}" text-anchor="middle">RR</text>`;
+  if(f.ausente)g+=`<path d="M${cx-13} ${apex}L${cx+13} ${cy-d*14}M${cx+13} ${apex}L${cx-13} ${cy-d*14}" stroke="${BLUE}" stroke-width="2.5"/>`;
+  if(f.extr)g+=`<path d="M${cx} ${apex+d*10}L${cx} ${apex+d*2}M${cx-3} ${apex+d*6}L${cx} ${apex+d*2}L${cx+3} ${apex+d*6}" stroke="${BLUE}" stroke-width="1.8" fill="none" transform="rotate(180 ${cx} ${apex+d*6})"/>`;
+  if(f.intr)g+=`<path d="M${cx} ${apex+d*2}L${cx} ${apex+d*10}M${cx-3} ${apex+d*6}L${cx} ${apex+d*10}L${cx+3} ${apex+d*6}" stroke="${BLUE}" stroke-width="1.8" fill="none"/>`;
+  if(f.giro)g+=`<path d="M${cx-10} ${cy-d*16}Q${cx} ${cy-d*24} ${cx+10} ${cy-d*16}" stroke="${BLUE}" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>`;
+  if(f.migr)g+=`<line x1="${cx-10}" y1="${cy-d*17}" x2="${cx+10}" y2="${cy-d*17}" stroke="${BLUE}" stroke-width="1.8" marker-end="url(#ar)"/>`;
+  const t=teeth[id],mxh=[1,4].includes(id/10|0)?1:-1,H={O:[0,0,8,6],V:[0,d*8,14,5],L:[0,-d*8,14,5],M:[mxh*9,0,5,10],D:[-mxh*9,0,5,10],R:[0,d*28,10,22]};
+  Object.entries(H).forEach(([F,[ox,oy,w2,h2]])=>{const FF=F=="O"?faceNames(t)[0]:F=="L"?(t.upper?"P":"L"):F;
+   g+=`<rect class="hz" data-id="${id}" data-f="${FF}" x="${cx+ox-w2/2}" y="${cy+oy-h2/2}" width="${w2}" height="${h2}"><title>${id} · ${FACE[FF]}</title></rect>`});
+  if(sel==id)g+=`<rect class="sel" x="${x+1}" y="${Math.min(cy-18,apex)-2}" width="${cw-2}" height="${Math.abs(apex-cy)+22}"/>`;
+  return g};
+ s+=`<defs><marker id="ar" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6Z" fill="${BLUE}"/></marker></defs>`;
+ U.forEach((id,i)=>{const x=x0+i*cw+(i>7?8:0);s+=box(x,8,id);s+=tooth(x,104,id,true);
+  const f=rec()[id]||{};s+=f.clav?`<path d="M${x+cw/2} 36L${x+cw/2+10} 52L${x+cw/2-10} 52Z" fill="none" stroke="${BLUE}" stroke-width="1.6"/>`:"";s+=`<text x="${x+cw/2}" y="48" font-size="10" font-weight="800" text-anchor="middle">${id}</text>`});
+ L.forEach((id,i)=>{const x=x0+i*cw+(i>7?8:0);s+=tooth(x,196,id,false);
+  const f=rec()[id]||{};s+=f.clav?`<path d="M${x+cw/2} 268L${x+cw/2+10} 284L${x+cw/2-10} 284Z" fill="none" stroke="${BLUE}" stroke-width="1.6"/>`:"";s+=`<text x="${x+cw/2}" y="280" font-size="10" font-weight="800" text-anchor="middle">${id}</text>`;s+=box(x,296,id)});
+ s+=`<line x1="${x0+8*cw+4}" y1="2" x2="${x0+8*cw+4}" y2="324" stroke="#111" stroke-width="3"/><line x1="${x0}" y1="150" x2="${x0+16*cw+8}" y2="150" stroke="#111" stroke-width="1.2"/>`;
+ $("og").innerHTML=s}
+
+/* ---------- Controles ---------- */
+toolsUI();
+(function(){const sh=$("sheet"),bar=$("sheetBar"),rz=$("rz");let m=null;
+ const keep=()=>{try{localStorage.setItem("odo3dSheet",JSON.stringify({l:sh.style.left,t:sh.style.top,w:sh.style.width}))}catch(e){}};
+ const clampPos=()=>{const r=sh.getBoundingClientRect();sh.style.left=Math.max(0,Math.min(innerWidth-60,r.left))+"px";sh.style.top=Math.max(0,Math.min(innerHeight-40,r.top))+"px"};
+ const fix=()=>{const r=sh.getBoundingClientRect();sh.style.left=r.left+"px";sh.style.top=r.top+"px";sh.style.bottom="auto";sh.style.width=r.width+"px"};
+ try{const p=JSON.parse(localStorage.getItem("odo3dSheet")||"null");if(p&&p.t){sh.style.left=p.l;sh.style.top=p.t;sh.style.width=p.w;sh.style.bottom="auto"}}catch(e){}
+ bar.addEventListener("pointerdown",e=>{fix();const r=sh.getBoundingClientRect();m={k:"mv",dx:e.clientX-r.left,dy:e.clientY-r.top};bar.setPointerCapture(e.pointerId);e.preventDefault()});
+ rz.addEventListener("pointerdown",e=>{fix();m={k:"rz",x:e.clientX,w:sh.getBoundingClientRect().width};rz.setPointerCapture(e.pointerId);e.preventDefault();e.stopPropagation()});
+ const mv=e=>{if(!m)return;if(m.k=="mv"){sh.style.left=(e.clientX-m.dx)+"px";sh.style.top=(e.clientY-m.dy)+"px";clampPos()}
+  else sh.style.width=Math.max(320,Math.min(innerWidth-8,m.w+e.clientX-m.x))+"px"};
+ const up=()=>{if(m){m=null;keep()}};
+ [bar,rz].forEach(el=>{el.addEventListener("pointermove",mv);el.addEventListener("pointerup",up);el.addEventListener("pointercancel",up)});
+ const zoom=k=>{fix();sh.style.width=Math.max(320,Math.min(innerWidth-8,sh.getBoundingClientRect().width*k))+"px";clampPos();keep()};
+ $("zIn").onclick=()=>zoom(1.15);$("zOut").onclick=()=>zoom(1/1.15);
+ bar.addEventListener("dblclick",()=>{sh.style.left=sh.style.top=sh.style.width=sh.style.bottom="";keep()});
+ addEventListener("resize",()=>{if(sh.style.top)clampPos()});
+})();
+$("tSheet").onclick=e=>{$("sheet").hidden=!$("sheet").hidden;e.target.classList.toggle("on",!$("sheet").hidden);drawSheet()};
+$("tUp").onclick=e=>{upper.visible=!upper.visible;e.target.classList.toggle("on",upper.visible)};
+$("tLo").onclick=e=>{lower.visible=!lower.visible;e.target.classList.toggle("on",lower.visible)};
+$("jaw").oninput=e=>{hinge.rotation.x=e.target.value/100*.55};
+$("op").oninput=e=>{const v=e.target.value/100;[boneMat,gumMat].forEach(m=>{m.transparent=v<1;m.opacity=v;m.depthWrite=v>=.99;m.needsUpdate=true})};
+$("notes").oninput=save;
+$("copy").onclick=e=>{const j=JSON.stringify({sistema:"FDI",modo:mode,hallazgos:rec(),especificaciones:$("spec").value,notas:$("notes").value},null,1);
+ navigator.clipboard.writeText(j).then(()=>e.target.textContent="Copiado",()=>{$("spec").value=j;$("spec").select();e.target.textContent="Selecciona y copia"});setTimeout(()=>e.target.textContent="Copiar JSON",1800)};
+$("clear").onclick=e=>{if(!ed())return;if(!e.target.dataset.c){e.target.dataset.c=1;e.target.textContent="¿Confirmar?";return}delete e.target.dataset.c;e.target.textContent="Limpiar registro";store[mode]={};renderAll()};
+
+// cámara orbital con pellizco
+const tgt=new THREE.Vector3(0,4,14),cur={th:.55,ph:1.2,r:170},goal={...cur};
+const views={"3/4":{th:.55,ph:1.2,r:170},Frontal:{th:0,ph:1.5,r:150},Lateral:{th:Math.PI/2,ph:1.45,r:160},"Oclusal inf.":{th:0,ph:.14,r:150},"Oclusal sup.":{th:0,ph:2.98,r:150}};
+Object.entries(views).forEach(([k,v])=>{const b=document.createElement("button");b.textContent=k;b.onclick=()=>Object.assign(goal,v);$("views").appendChild(b)});
+const ray=new THREE.Raycaster(),mp=new THREE.Vector2(),tip=$("tip"),pts=new Map();let drag=false,pd=0;
+function hit(e){mp.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mp,cam);
+ const h=ray.intersectObjects(pick.filter(m=>m.visible&&m.parent.visible&&m.parent.parent.parent.visible),false)[0];return h?h.object.userData.id:null}
+function crownHit(e){if(!sel)return null;const t=teeth[sel];mp.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mp,cam);return ray.intersectObjects(t.cr.children.concat(moving=="fractura"&&t.rt.visible?t.rt.children:[]),false)[0]||null}
+function place(h){const t=teeth[sel],v=rec()[sel]&&rec()[sel][moving];if(!v)return;t.g.updateMatrixWorld();const p=t.g.worldToLocal(h.point.clone()),n=h.face.normal.clone().transformDirection(h.object.matrixWorld).transformDirection(new THREE.Matrix4().copy(t.g.matrixWorld).invert());
+ const pt={p:[p.x,p.y,p.z],n:[n.x,n.y,n.z],f:classify(t,[p.x,p.y,p.z])};
+ if(moving=="fractura"){const last=v.L[v.L.length-1];if(!last||Math.hypot(last.p[0]-p.x,last.p[1]-p.y,last.p[2]-p.z)>.6)v.L.push(pt);v.a=v.L.length-1}else v.L[v.a]=pt;render3D(sel)}
+cv.addEventListener("pointerdown",e=>{if(moving&&ed()){const h=crownHit(e);if(h){placing=true;cv.setPointerCapture(e.pointerId);if(moving=="fractura")rec()[sel].fractura.L=[];place(h);return}}pts.set(e.pointerId,[e.clientX,e.clientY]);drag=false;cv.setPointerCapture(e.pointerId);cv.style.cursor="grabbing"});
+cv.addEventListener("pointermove",e=>{if(placing){const h=crownHit(e);if(h)place(h);return}const p=pts.get(e.pointerId);
+ if(pts.size==2&&p){const [a,b]=[...pts.values()];const d0=Math.hypot(a[0]-b[0],a[1]-b[1]);pts.set(e.pointerId,[e.clientX,e.clientY]);const [c,d]=[...pts.values()];const d1=Math.hypot(c[0]-d[0],c[1]-d[1]);goal.r=THREE.MathUtils.clamp(goal.r*d0/d1,60,320);drag=true;return}
+ if(p){const dx=e.clientX-p[0],dy=e.clientY-p[1];if(drag||Math.hypot(dx,dy)>4){drag=true;goal.th-=dx*.008;goal.ph=THREE.MathUtils.clamp(goal.ph-dy*.008,.1,3.04);cur.th=goal.th;cur.ph=goal.ph;pts.set(e.pointerId,[e.clientX,e.clientY]);tip.hidden=true;return}}
+ if(e.pointerType=="touch")return;
+ const id=hit(e);if(id!=hov){hov=id;refreshGlow()}
+ if(id){tip.hidden=false;tip.style.left=e.clientX+14+"px";tip.style.top=e.clientY+14+"px";tip.textContent=`${id} · ${teeth[id].nm}`}else tip.hidden=true});
+const end=e=>{if(placing){placing=false;refresh();return}if(pts.has(e.pointerId)&&!drag&&pts.size==1){const ns=hit(e);if(ns!=sel){const o=sel;sel=ns;if(moving){moving=null;if(o)render3D(o)}}refresh()}pts.delete(e.pointerId);cv.style.cursor="grab"};
+cv.addEventListener("pointerup",end);cv.addEventListener("pointercancel",e=>pts.delete(e.pointerId));
+cv.addEventListener("wheel",e=>{e.preventDefault();goal.r=THREE.MathUtils.clamp(goal.r*(1+e.deltaY*.001),60,320)},{passive:false});
+function refreshGlow(){Object.values(teeth).forEach(x=>x.mat.emissive.set(x.id==sel?0x2a6fa8:x.id==hov?0x1c4468:0))}
+function size(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}
+addEventListener("resize",size);size();modesUI();renderAll();
+(function loop(){requestAnimationFrame(loop);["th","ph","r"].forEach(k=>cur[k]+=(goal[k]-cur[k])*.12);
+ cam.position.set(tgt.x+cur.r*Math.sin(cur.ph)*Math.sin(cur.th),tgt.y+cur.r*Math.cos(cur.ph),tgt.z+cur.r*Math.sin(cur.ph)*Math.cos(cur.th));
+ cam.up.set(0,1,0);cam.lookAt(tgt);R.render(S,cam)})();
+
+/* ---------- Carga de datos del paciente desde DentSalud ---------- */
+addEventListener("message",e=>{if(e.origin!==location.origin||e.source!==parent)return;const m=e.data||{};
+ if(m.type!=="odo3d:cargar")return;
+ sistema={};(m.piezas||[]).forEach(p=>{sistema[+p.numeroPieza]=p});
+ const d=m.datos||{},s=d.store||{};
+ store.inicial=s.inicial||{};store.evolucion=s.evolucion||{};locked=!!d.locked;$("notes").value=d.notes||"";
+ mode=locked?"evolucion":"inicial";sel=null;moving=null;
+ reconciliar();
+ ultimoEnvio=JSON.stringify(datosActuales());cargado=true;
+ modesUI();renderAll()});
+// Si el visor se abre solo (fuera del sistema), funciona sin guardar
+if(parent!==window)parent.postMessage({type:"odo3d:listo"},location.origin);
+</script>
+
+</body></html>

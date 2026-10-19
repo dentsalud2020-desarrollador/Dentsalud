@@ -11,6 +11,7 @@ import dashboardRouter from "./dashboard";
 import citasRouter from "./citas";
 import imagenesRouter from "./imagenes";
 import consentimientosRouter from "./consentimientos";
+import odontograma3dRouter from "./odontograma3d";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(dashboardRouter);
 router.use(citasRouter);
 router.use(imagenesRouter);
 router.use(consentimientosRouter);
+router.use(odontograma3dRouter);
 
 export default router;
